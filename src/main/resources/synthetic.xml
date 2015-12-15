@@ -22,7 +22,14 @@
         <property name="variableName" label="Variable to Make Optional" category="output" />
     </type>
 
+    <type type="rel.SetDefaultValue" extends="rel.ProfileTask">
+        <property name="variableName" label="Variable to Make Optional" category="output" />
+        <property name="defaultValue" label="default value to assign" category="input" />
+    </type>
+
     <type type="rel.ReleaseProfile" extends="xlrelease.Configuration">
         <property name="variablesJson" default="{}" />
     </type>
+
+
 </synthetic>
