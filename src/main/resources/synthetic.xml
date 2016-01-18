@@ -13,23 +13,30 @@
         <property name="taskColor" hidden="true" default="#0B0E0F" />
         <property name="iconLocation" default="rel/variables.png" hidden="true" />
     </type>
-
     <type type="rel.LoadProfile" extends="rel.ProfileTask" description="Get a value set by another release">
         <property name="Profiles" label="profile to load" required="true" category="input" />
+    </type>
+
+    <type type="rel.LoadProfileFromUrl" extends="rel.ProfileTask" description="Get a value set by another release">
+        <property name="repository" label="repo to get the artifact from" required="true" category="input" />
+        <property name="artifact"   label="artifact to load" default="profile.json" hidden="false" required="true" category="input" />
+        <property name="server"     label="artifactory server to use" referenced-type="artifactory.Server" kind="ci" required="true" category="input"/>
+        <property name="username"   default="" required="false" category="input" />
+        <property name="password"   default="" required="false" password="true" category="input"/>
     </type>
 
     <type type="rel.MakeVariableOptional" extends="rel.ProfileTask">
         <property name="variableName" label="Variable to Make Optional" category="output" />
     </type>
-
     <type type="rel.SetDefaultValue" extends="rel.ProfileTask">
         <property name="variableName" label="Variable to Make Optional" category="output" />
         <property name="defaultValue" label="default value to assign" category="input" />
     </type>
-
     <type type="rel.ReleaseProfile" extends="xlrelease.Configuration">
-        <property name="variablesJson" default="{}" />
+        <property name="profileJson" default="{}" size="large" />
     </type>
 
+    <type type="artifactory.Server" extends="configuration.HttpConnection">
+    </type>
 
 </synthetic>
