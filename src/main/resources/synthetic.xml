@@ -36,7 +36,5 @@
         <property name="profileJson" default="{}" size="large" />
     </type>
 
-    <type type="artifactory.Server" extends="configuration.HttpConnection">
-    </type>
 
 </synthetic>
