@@ -11,7 +11,7 @@
 
     <type type="rel.ProfileTask" extends="xlrelease.PythonScript" virtual="true">
         <property name="taskColor" hidden="true" default="#0B0E0F" />
-        <property name="iconLocation" default="rel/variables.png" hidden="true" />
+        <property name="iconLocation" default="rel/profile.png" hidden="true" />
     </type>
     <type type="rel.LoadProfile" extends="rel.ProfileTask" description="Get a value set by another release">
         <property name="Profiles" label="profile to load" required="true" category="input" />
@@ -35,6 +35,8 @@
     <type type="rel.ReleaseProfile" extends="xlrelease.Configuration">
         <property name="profileJson" default="{}" size="large" />
     </type>
-
+    <type type="rel.setReleaseTags" extends="rel.ProfileTask">
+        <property name="tags" label="comma separated list of tags to add to the current release" required="true" />
+    </type>
 
 </synthetic>
