@@ -149,18 +149,26 @@ class ArtifactoryCommunicator(object):
         else:
             return output.text
 
+def load_profile(profile):
+    sp = SearchParameters()
+    sp.setType(Type.valueOf('rel.ReleaseProfile'))
+
+    for p in XLReleaseServiceHolder.getRepositoryService().listEntities(sp):
+        if str(p.getTitle()) == profile:
+            return json.loads(p.getProperty('profileJson'))
+
+
 
 def load_profile_from_url(repository, artifact, server):
     art = ArtifactoryCommunicator(**server)
     print art
     return art.get_artifact(repository, artifact)
 
-def get_variables():
-    print __profile
-    return __profile["variables"]
+def get_variables(profile):
+    return profile["variables"]
 
-def get_toggles():
-    return __profile["toggles"]
+def get_toggles(profile):
+    return profile["toggles"]
 
 
 def get_phase_dict():
@@ -210,14 +218,14 @@ def createSimpleTask(phaseId, taskTypeValue, title, propertyMap):
             parentTask.setProperty(item,propertyMap[item])
     taskApi.addTask(phaseId,parentTask)
 
-def update_release_with_variables():
+def update_release_with_variables(profile):
     """
     Handles resolving the variables and injecting them into the template
     :return:
     """
 
     newVariables = {}
-    for key, value in get_variables().items():
+    for key, value in get_variables(profile).items():
         if re.match(__variable_start_regex, key) is None:
             key = "${%s}" % (key)
             # if the value is a dict with further specification of where to retrieve the variable from resolve it
@@ -342,8 +350,8 @@ def get_comment(commentText):
     comment.setComment(commentText)
     return comment
 
-def handle_toggles():
-    toggles = get_toggles()
+def handle_toggles(profile):
+    toggles = get_toggles(profile)
 
     for t in toggles:
         print str(t)
@@ -358,8 +366,8 @@ def handle_toggles():
 
 
 
-__profile = load_profile_from_url(repository, artifact, server)
-update_release_with_variables()
-handle_toggles()
+profile = load_profile_from_url(repository, artifact, server)
+update_release_with_variables(profile)
+handle_toggles(profile)
 # update_release_with_variables(url)
 # handle_toggles(url)

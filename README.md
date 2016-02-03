@@ -16,3 +16,21 @@ Copy the plugin JAR file into the `SERVER_HOME/plugins` directory of XL Release.
 
 
 ## Example Use Case
+
+
+'''
+{"variables":
+    {"test1": { "default_value" : "555",
+                "collector" : { "type" : "json" ,
+                                "url" : "http://192.168.99.100:32768/artifactory/xlrelease/collector_test.json",
+                                "path" : "claims/bpm/2012_02/buildNr" }},
+     "test2": { "default_value" : "444",
+                "collector" : { "type" : "json" ,
+                                "url" : "http://192.168.99.100:32768/artifactory/api/storage/xlrelease?properties",
+                                "path" : "properties/latest_build" }},
+     "test3": "scarecrow" }
+     ,"toggles" :
+      [{"phase" : "deploy_to_dev", "task" : "shitty", "skip" : "true"},
+       {"phase" : "deploy_to_dev", "task" : "shitty1", "skip" : "true"}]
+     ,"tasks": {}}
+'''
