@@ -32,6 +32,6 @@ github {
     targetCommitish = 'master'
     name = getVersionName()
     assets = [
-            "build/libs/xlr-lm-artifactory-plugin-"+getVersionName()+".jar"
+            "build/libs/xlr-release-profile-plugin-"+getVersionName()+".jar"
     ]
 }
