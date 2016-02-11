@@ -43,7 +43,7 @@ class XLRProfile(collections.MutableMapping):
         elif kwargs.has_key('repoId'):
             kwargs = self.load_profile_from_xlr_repo(kwargs['repoId'])
         elif kwargs.has_key('repoString'):
-            kwargs = json.loads(str(repoString))
+            kwargs = json.loads(str(kwargs['repoString']))
 
         self.update(dict(*args, **kwargs))  # use the free update to set keys
 
