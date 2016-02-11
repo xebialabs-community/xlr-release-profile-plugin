@@ -38,6 +38,6 @@
 
     <!-- for backwards compatibility -->
     <type type="rel.LoadProfileFromUrl" extends="rel.LoadDynamicProfile" description="Get a value set by another release"/>
-    
+
 
 </synthetic>
