@@ -15,14 +15,7 @@
     </type>
     <type type="rel.LoadProfile" extends="rel.ProfileTask" description="Get a value set by another release">
         <property name="Profiles" label="profile to load" required="true" category="input" />
-    </type>
-
-    <type type="rel.LoadProfileFromUrl" extends="rel.ProfileTask" description="Get a value set by another release">
-        <property name="repository" label="repo to get the artifact from" required="true" category="input" />
-        <property name="artifact"   label="artifact to load" default="profile.json" hidden="false" required="true" category="input" />
-        <property name="server"     label="artifactory server to use" referenced-type="artifactory.Server" kind="ci" required="true" category="input"/>
-        <property name="username"   default="" required="false" category="input" />
-        <property name="password"   default="" required="false" password="true" category="input"/>
+        <property name="ScriptLocation" default="rel/LoadDynamicProfile.py" category="input" hidden="true" />
     </type>
 
     <type type="rel.MakeVariableOptional" extends="rel.ProfileTask">
@@ -35,8 +28,12 @@
     <type type="rel.ReleaseProfile" extends="xlrelease.Configuration">
         <property name="profileJson" default="{}" size="large" />
     </type>
-    <type type="rel.setReleaseTags" extends="rel.ProfileTask">
-        <property name="tags" label="comma separated list of tags to add to the current release" required="true" />
+
+
+    <type type="rel.LoadDynamicProfile" extends="rel.ProfileTask" description="Get a value set by another release">
+        <property name="profileUrl" label="profile url" required="false" category="input" />
+        <property name="profiles" label="inline profile to load" required="false" category="input" size="large" />
+        <property name="profileFromRepository" label="Profile stored in xlr repository" category="input"  required="false" />
     </type>
 
 </synthetic>
