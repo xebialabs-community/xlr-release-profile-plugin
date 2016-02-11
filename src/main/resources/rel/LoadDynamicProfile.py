@@ -5,6 +5,7 @@
 #
 #from XLRProfile import XLRProfile as XLRProfile
 import sys
+
 from XLRProfile import XLRProfile as XLRProfile
 
 __release = getCurrentRelease()
@@ -20,9 +21,7 @@ elif profileFromRepository:
 # finally pick up the inline specified profile (this being our least favourite options ..
 # why .. just becuz
 elif profiles:
-    profiles = profiles.replace('\n','').replace('\t', '').replace('\r', '')
-    profile = XLRProfile(**profiles)
-
+    profile = XLRProfile(repoString=profiles.replace('\n','').replace('\t', '').replace('\r', ''))
 else:
     print "no input profile found.. exiting"
     sys.exit(2)
