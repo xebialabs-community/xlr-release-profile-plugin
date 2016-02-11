@@ -164,7 +164,12 @@ class XLRProfile(collections.MutableMapping):
 
             response.raise_for_status()
 
-            inputDictionary = json.loads(str(response.text))
+            try:
+                inputDictionary = json.loads(str(response.text))
+            except Exception:
+                print "unable to decode information provided by %s" % params['url']
+                return None
+
             # if the path parameter was given parse it and see if we can retrieve a value . if path was not set return None
             # i could have chosen to return the json in its raw form, but that might lead to unwanted situations and code injection
             if params.has_key('path'):
