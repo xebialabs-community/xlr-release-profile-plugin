@@ -20,7 +20,7 @@ elif profileFromRepository:
 # finally pick up the inline specified profile (this being our least favourite options ..
 # why .. just becuz
 elif profiles:
-    profile = profile.replace('\n','').replace('\t', '').replace('\r', '')
+    profiles = profiles.replace('\n','').replace('\t', '').replace('\r', '')
     profile = XLRProfile(**profiles)
 
 else:
