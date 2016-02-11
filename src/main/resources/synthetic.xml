@@ -36,4 +36,8 @@
         <property name="profileFromRepository" label="Profile stored in xlr repository" category="input"  required="false" />
     </type>
 
+    <!-- for backwards compatibility -->
+    <type type="rel.LoadProfileFromUrl" extends="rel.LoadDynamicProfile" description="Get a value set by another release"/>
+    
+
 </synthetic>
