@@ -160,7 +160,7 @@ class XLRProfile(collections.MutableMapping):
             requests.params['auth'] = HTTPBasicAuth(params['username'], params['password'])
 
         if params.has_key('url'):
-            response = requests.get(params['url'], **requests_params)
+            response = requests.get(params['url'], verify=False, **requests_params)
 
             response.raise_for_status()
 
