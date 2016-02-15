@@ -27,6 +27,7 @@ else:
     sys.exit(2)
 
 print str(profile)
+
 # handle the profile
 profile.persist_variables_to_release(__release.id)
 profile.handle_toggles(__release.id)

@@ -1,11 +1,11 @@
 {"variables":
     {"test1": { "default_value" : "batman",
                 "collector" : { "type" : "json" ,
-                                "url" : "http://",
-                                "path" : "" }},
-     "test2": "bane",
+                                "url" : "http://192.168.99.100:32768/artifactory/api/xlrelease?properties",
+                                "path" : "properties/last_good_build" }},
+     "test2": { "default_value" : "joker",
+                "collector" : { "type" : "json" ,
+                                "url" : "http://192.168.99.100:32768/artifactory/api/xlrelease1?properties",
+                                "path" : "properties/last_good_build" }},
      "test3": "scarecrow" }
-     ,"toggles" :
-      [{"phase" : "deploy_to_dev", "task" : "shitty", "skip" : "true"},
-       {"phase" : "deploy_to_dev", "task" : "shitty1", "skip" : "true"}]
-     ,"tasks": {}}
+}
