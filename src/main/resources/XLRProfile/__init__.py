@@ -74,24 +74,38 @@ class JsonCollector(Collector):
 
 
     def load_json(self, url):
-        try:
-            response = requests.get(url, verify=False, **self.requests_params)
 
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            print "unable to retrieve json from url: %s" % url
-            print e.request
-            return None
-        try:
-            print "%s responded with:" % url
-            print response.text
-            return json.loads(str(response.text))
-        except Exception:
-            print "unable to decode information provided by %s" % url
-            return None
-        except JSONDecodeError:
-            print "error"
-            return None
+        #adding in retry to make all this stuff a little more robust
+        retries = 10
+        nr_tries = 0
+
+        output = None
+
+        while not retries or nr_tries < retries:
+
+            nr_tries += 1
+            print "trying to fetch json from url %s , try nr: %i" % (url, nr_tries)
+
+            #fetch the json
+            try:
+                response = requests.get(url, verify=False, **self.requests_params)
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                print "unable to retrieve json from url: %s" % url
+                print e.request
+                output = None
+
+            #try to decode it 
+            try:
+                print "%s responded with:" % url
+                print response.text
+                output =  json.loads(str(response.text))
+                break
+            except Exception:
+                print "unable to decode information provided by %s" % url
+                output =  None
+
+        return output
 
     def get_path(self, json, path):
 
@@ -416,5 +430,5 @@ class XLRProfile(collections.MutableMapping):
  #                return None
  #
  #    except Exception:
- #        print "Error encounterd trying to handle json collector for %s" % params['url']
+ #        print "nterd trying to handle json collector for %s" % params['url']
  #        return None
