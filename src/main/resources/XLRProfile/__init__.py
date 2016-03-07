@@ -10,6 +10,8 @@ import collections
 import requests
 
 import com.xhaus.jyson.JysonCodec as json
+from com.xhaus.jyson import JSONDecodeError
+
 from requests.auth import HTTPBasicAuth
 
 import com.xebialabs.xlrelease.api.XLReleaseServiceHolder as XLReleaseServiceHolder
@@ -95,7 +97,7 @@ class JsonCollector(Collector):
                 print e.request
                 output = None
 
-            #try to decode it 
+            #try to decode it
             try:
                 print "%s responded with:" % url
                 print response.text
@@ -104,6 +106,9 @@ class JsonCollector(Collector):
             except Exception:
                 print "unable to decode information provided by %s" % url
                 output =  None
+            except JSONDecodeError:
+                print "unable to decode output, not json formatted"
+                output = None
 
         return output
 
@@ -220,7 +225,7 @@ class XLRProfile(collections.MutableMapping):
         sp.setType(Type.valueOf('rel.ReleaseProfile'))
 
         for p in self.__repositoryService.listEntities(sp):
-            if str(p.getTitle()) == profile:
+            if str(p.getTitle()) == profileName:
                 return json.loads(p.getProperty('profileJson'))
 
 

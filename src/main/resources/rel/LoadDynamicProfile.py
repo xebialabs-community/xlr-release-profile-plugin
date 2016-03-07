@@ -5,8 +5,13 @@
 #
 #from XLRProfile import XLRProfile as XLRProfile
 import sys
+import XLRProfile
+reload(XLRProfile)
+
 
 from XLRProfile import XLRProfile as XLRProfile
+
+# reload statement.. remove after development phase
 
 __release = getCurrentRelease()
 
