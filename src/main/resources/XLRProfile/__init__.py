@@ -255,7 +255,6 @@ class XLRProfile(collections.MutableMapping):
         self.store['variables'] = var_dict
 
     def toggles(self):
-
         return self.__getitem__('toggles')
 
     def load_from_url(self, url):
@@ -365,15 +364,19 @@ class XLRProfile(collections.MutableMapping):
     def handle_toggles(self, releaseId):
 
         release = self.__releaseApi.getRelease(releaseId)
-        if self.toggles:
-            for t in self.toggles:
-                task = self.get_task_by_phase_and_title(str(t["phase"]), str(t["task"]), release)
-                if task:
-                    print "removing task %s " % task
-                    self.__repositoryService.delete(str(task))
 
-                else:
-                    print "task not found"
+        if self.toggles:
+            try:
+                for t in self.toggles:
+                    task = self.get_task_by_phase_and_title(str(t["phase"]), str(t["task"]), release)
+                    if task:
+                        print "removing task %s " % task
+                        self.__repositoryService.delete(str(task))
+
+                    else:
+                        print "task not found"
+            except TypeError:
+                print "toggles not valid... moving on"
         else:
             print "no toggles found"
 
