@@ -8,36 +8,73 @@
 -->
 <synthetic xsi:schemaLocation="http://www.xebialabs.com/deployit/synthetic synthetic.xsd"
            xmlns="http://www.xebialabs.com/deployit/synthetic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <type type="rel.ProfileTask" extends="xlrelease.PythonScript" virtual="true">
+    <property name="taskColor" hidden="true" default="#0B0E0F" />
+    <property name="iconLocation" default="rel/profile.png" hidden="true" />
+  </type>
 
-    <type type="rel.ProfileTask" extends="xlrelease.PythonScript" virtual="true">
-        <property name="taskColor" hidden="true" default="#0B0E0F" />
-        <property name="iconLocation" default="rel/profile.png" hidden="true" />
-    </type>
-    <type type="rel.LoadProfile" extends="rel.ProfileTask" description="Get a value set by another release">
-        <property name="Profiles" label="profile to load" required="true" category="input" />
-        <property name="ScriptLocation" default="rel/LoadDynamicProfile.py" category="input" hidden="true" />
-    </type>
+  <type type="rel.LoadProfile" extends="rel.ProfileTask" description="Get a value set by another release">
+    <property name="Profiles" label="profile to load" required="true" category="input" />
+    <property name="scriptLocation" default="rel/LoadDynamicProfile.py" category="input" hidden="true" />
+  </type>
 
-    <type type="rel.MakeVariableOptional" extends="rel.ProfileTask">
-        <property name="variableName" label="Variable to Make Optional" category="output" />
-    </type>
-    <type type="rel.SetDefaultValue" extends="rel.ProfileTask">
-        <property name="variableName" label="Variable to Make Optional" category="output" />
-        <property name="defaultValue" label="default value to assign" category="input" />
-    </type>
-    <type type="rel.ReleaseProfile" extends="xlrelease.Configuration">
-        <property name="profileJson" default="{}" size="large" />
-    </type>
+  <type type="rel.MakeVariableOptional" extends="rel.ProfileTask">
+    <property name="variableName" label="Variable to Make Optional" category="output" />
+  </type>
 
+  <type type="rel.SetDefaultValue" extends="rel.ProfileTask">
+    <property name="variableName" label="Variable to Make Optional" category="output" />
+    <property name="defaultValue" label="default value to assign" category="input" />
+  </type>
 
-    <type type="rel.LoadDynamicProfile" extends="rel.ProfileTask" description="Get a value set by another release">
-        <property name="profileUrl" label="profile url" required="false" category="input" />
-        <property name="profiles" label="inline profile to load" required="false" category="input" size="large" />
-        <property name="profileFromRepository" label="Profile stored in xlr repository" category="input"  required="false" />
-    </type>
+  <type type="rel.ReleaseProfile" extends="xlrelease.Configuration">
+    <property name="profileJson" default="{}" size="large" />
+  </type>
 
-    <!-- for backwards compatibility -->
-    <type type="rel.LoadProfileFromUrl" extends="rel.LoadDynamicProfile" description="Get a value set by another release"/>
+  <type type="rel.LoadDynamicProfile" extends="rel.ProfileTask" description="Load release profile">
+    <property name="profileUrl" label="profile url" required="false" category="input" />
+    <property name="profiles" label="inline profile to load" required="false" category="input" size="large" />
+    <property name="profileFromRepository" label="Profile stored in xlr repository" category="input"  required="false" />
+  </type>
+  <!-- for backwards compatibility -->
+  <type type="rel.LoadProfileFromUrl" extends="rel.LoadDynamicProfile" description="backward compatibility"/>
 
 
-</synthetic>
+
+  <!-- release counter stuff -->
+  <type type="rel.SetReleaseCounter" extends="rel.ProfileTask" description="set a counter tied to this release">
+    <property name="counterStore" default="default" label="name of the counter Store" kind="string" required="true" category="input"/>
+    <property name="counterName" label="name of the counter" kind="string" required="true" category="input"/>
+    <property name="counterValue" label="value of the counter to set" kind="integer" required="true" category="input"/>
+    <property name="taskAction" label="what to do when we get to the script" kind="string" required="true" default="set" hidden="true" category="input"/>
+    <property name="scriptLocation" default="rel/ReleaseCounter.py" category="input" hidden="true" />
+  </type>
+
+  <type type="rel.incrementReleaseCounter" extends="rel.ProfileTask" description="get the release counter and increment it before returning">
+    <property name="counterStore" default="default" label="name of the counter Store" kind="string" required="true" category="input"/>
+    <property name="counterName" label="name of the counter" kind="string" required="true" category="input"/>
+    <property name="outputVariable" label="name of the variable" kind="string" required="true" category="output"/>
+    <property name="taskAction" label="what to do when we get to the script" kind="string" required="true" default="increment" hidden="true" category="input"/>
+    <property name="scriptLocation" default="rel/ReleaseCounter.py" category="input" hidden="true" />
+  </type>
+
+  <type type="rel.getReleaseCounter" extends="rel.ProfileTask" description="get the release counter and increment it before returning">
+    <property name="counterStore" default="default" label="name of the counter Store" kind="string" required="true" category="input"/>
+    <property name="counterName" label="name of the counter" kind="string" required="true" category="input"/>
+    <property name="outputVariable" label="name of the variable" kind="string" required="true" category="output"/>
+    <property name="taskAction" label="what to do when we get to the script" kind="string" required="true" default="get" hidden="true" category="input"/>
+    <property name="scriptLocation" default="rel/ReleaseCounter.py" category="input" hidden="true" />
+  </type>
+
+  <type type="rel.ReleaseCounterStore" extends="xlrelease.Configuration">
+    <property name="counterStorage" default="{}" kind="string" />
+  </type>
+
+  <!-- handy stuff to do string manipulation with -->
+   <type type="rel.CreateCompositeString" extends="rel.ProfileTask" description="Combine two strings into one">
+    <property name="inputStrings" label="Input strings (seperated by semicolons)" kind="string" required="true" category="input"/>
+    <property name="outputString" label="Name of the output string" kind="string" required="true" category="output"/>
+    <property name="scriptLocation" default="rel/CreateCompositeString.py" category="input" hidden="true" />
+  </type>
+  
+  </synthetic>
