@@ -70,11 +70,9 @@
     <property name="counterStorage" default="{}" kind="string" />
   </type>
 
-  <!-- handy stuff to do string manipulation with -->
-   <type type="rel.CreateCompositeString" extends="rel.ProfileTask" description="Combine two strings into one">
-    <property name="inputStrings" label="Input strings (seperated by semicolons)" kind="string" required="true" category="input"/>
-    <property name="outputString" label="Name of the output string" kind="string" required="true" category="output"/>
-    <property name="scriptLocation" default="rel/CreateCompositeString.py" category="input" hidden="true" />
+  <!-- self tagging releases -->
+  <type type="rel.setReleaseTag" extends="rel.ProfileTask">
+    <property name="tag" required="true" label="tag to ad to the release" kind="string" category="input"/>
   </type>
-  
+
   </synthetic>

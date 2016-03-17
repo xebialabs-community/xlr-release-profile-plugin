@@ -54,10 +54,13 @@ def create_or_update_counter(counterStoreTitle, key, value):
     save_counter_store(counterStoreTitle, store)
 
 def get_counter_value(counterStoreTitle, key):
-    cs = get_counter_store_storage(counterStoreTitle)
-    print cs[key]
+    try:
+      cs = get_counter_store_storage(counterStoreTitle)
+      return cs[key]
+    except KeyError:
+      return 1
 
-    return cs[key]
+
 
 print taskAction
 if taskAction == 'set':

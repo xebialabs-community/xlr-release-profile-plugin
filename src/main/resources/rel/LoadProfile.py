@@ -30,41 +30,6 @@ __variable_start_regex = re.compile('^\$\{', re.IGNORECASE)
 # setup the communication object to artifactory
 
 
-# sp = SearchParameters()
-# sp.setType(Type.valueOf('rel.ReleaseProfile'))
-# for x in XLReleaseServiceHolder.getRepositoryService().listEntities(sp):
-#     print type(x)
-#     print x.getTitle()
-#     print x.getProperty('variablesJson')
-#     print dir(x)
-    #print XLReleaseServiceHolder.getRepositoryService().read(str(x))
-
-#EXAMPLE json
-
-# {"variables":
-#     {"test1": "batman",
-#      "test2": "bane",
-#      "test3": "scarecrow" }
-#      ,"toggles" :
-#       [{"phase" : "deploy_to_dev", "task" : "shitty", "skip" : "true"},
-#        {"phase" : "deploy_to_dev", "task" : "shitty1", "skip" : "true"}]
-#      ,"tasks": {}}
-#
-# {"variables":{"test1": "batman","test2": "bane","test3": "scarecrow" },"toggles" :[{"phase" : "deploy_to_dev", "task" : "shitty", "skip" : "true"},{"phase" : "deploy_to_dev", "task" : "shitty1", "skip" : "true"}],"tasks": {}}
-# def deleteTaskPatch(taskId):
-#     return releaseActorService.deleteTask(taskId)
-#
-# TaskApi.deleteTask = deleteTaskPatch
-#
-#
-# if servicenowResponse.status == RECORD_CREATED_STATUS:
-#     data = json.loads(servicenowResponse.read())
-#     sysId = data["result"]["sys_id"]
-#     print "Created %s in Service Now." % (sysId)
-# else:
-#     print "Failed to create record in Service Now"
-#     servicenowResponse.errorDump()
-#     sys.exit(1)
 class ArtifactoryCommunicator(object):
 
     def __init__(self, **params):
@@ -88,34 +53,6 @@ class ArtifactoryCommunicator(object):
     def do_get(self, path):
             return self.do_it("GET", path, "")
 
-    # TODO: remove this once tested
-    # def do_it(self, verb, path, doc, parse_response=True):
-    #         #print "DO %s %s on %s " % (verb, path, self.endpoint)
-    #
-    #         parsed_url = urlparse(self.url)
-    #         if parsed_url.scheme == "https":
-    #             conn = httplib.HTTPSConnection(parsed_url.hostname, parsed_url.port)
-    #         else:
-    #             conn = httplib.HTTPConnection(parsed_url.hostname, parsed_url.port)
-    #
-    #         try:
-    #             auth = base64.encodestring('%s:%s' % (self.username, self.password)).replace('\n', '')
-    #             headers = {"content-type": "application/json", "Authorization": "Basic %s" % auth}
-    #             print "blahblah"
-    #             conn.request(verb, path, doc, headers)
-    #             response = conn.getresponse()
-    #             #print response.status, response.reason
-    #             if response.status != 200 and response.status != 204 and response.status !=201:
-    #                 raise Exception("Error when requesting remote url %s [%s]:%s" % (path,  response.status, response.reason))
-    #
-    #             if parse_response:
-    #                 data = str(response.read())
-    #                 decoded = json.loads(data)
-    #                 print "blah"
-    #                 return decoded
-    #             return None
-    #         finally:
-    #             conn.close()
 
     def do_it(self,verb, path, data=None, params=None, parse_response=True):
         print "downloading json from %s" % self.url
