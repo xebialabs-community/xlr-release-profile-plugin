@@ -16,7 +16,7 @@ def get_conn():
 
     user = get_user()
     password = get_password()
-    
+
 
     return HttpRequest({'url': xlreleaseUrl }, user, password)
 
@@ -35,7 +35,6 @@ def get_counter_store_ci(counterStoreTitle):
 
     for i in range(0, len(data)):
         if data[i]['type'] == 'rel.ReleaseCounterStore' and counterStoreTitle == data[i]['properties']['title']:
-                print data
                 counter_store_ci = data[i]
                 break
 
@@ -44,7 +43,7 @@ def get_counter_store_ci(counterStoreTitle):
         sys.exit(1)
 
 
-    return data[0]
+    return counter_store_ci
 
 def save_counter_store(counterStoreTitle, storageDict):
 
@@ -54,7 +53,6 @@ def save_counter_store(counterStoreTitle, storageDict):
     counter_store_ci['properties']['counterStorage'] = json.dumps(storageDict)
 
     response = conn_fac.put('/configurations/%s' % (counter_store_ci['id']), json.dumps(counter_store_ci), contentType = 'application/json')
-    print response
     if not response.isSuccessful:
         print "ERROR: Unable to update counter store '%s':" % (counterStoreTitle)
         response.errorDump()
@@ -62,7 +60,6 @@ def save_counter_store(counterStoreTitle, storageDict):
 
 def get_counter_store_storage(counterStoreTitle):
     cs = get_counter_store_ci(counterStoreTitle)
-    print type(cs)
     if type(cs) != dict:
         print "ERROR: unexpected response from counter Store: %s" % counterStoreTitle
         sys.exit(1)
@@ -72,7 +69,6 @@ def get_counter_store_storage(counterStoreTitle):
 def create_or_update_counter(counterStoreTitle, key, value):
     store = get_counter_store_storage(counterStoreTitle)
     store[key] = value
-    print store
     save_counter_store(counterStoreTitle, store)
 
 def get_counter_value(counterStoreTitle, key):
