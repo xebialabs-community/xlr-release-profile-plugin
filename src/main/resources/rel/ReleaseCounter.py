@@ -2,12 +2,33 @@ import sys
 
 import com.xhaus.jyson.JysonCodec as json
 
+def get_user():
+    if xlreleaseUser == None:
+        return str(release.scriptUsername)
+    return str(xlreleaseUser)
+
+def get_password():
+    if xlreleasePassword == None:
+        return str(release.scriptUserPassword)
+    return str(xlreleasePassword)
+
+def get_conn():
+
+    user = get_user()
+    password = get_password()
+    
+
+    return HttpRequest({'url': xlreleaseUrl }, user, password)
+
 def get_counter_store_ci(counterStoreTitle):
-    conn_fac = HttpRequest({'url': 'http://localhost:5516'}, str(release.scriptUsername), str(release.scriptUserPassword))
+
+    conn_fac = get_conn()
+
 
     response = conn_fac.get(str('/configurations'), contentType = 'application/json')
 
     data = json.loads(response.getResponse())
+
 
 
     counter_store_ci = None
@@ -26,7 +47,8 @@ def get_counter_store_ci(counterStoreTitle):
     return data[0]
 
 def save_counter_store(counterStoreTitle, storageDict):
-    conn_fac = HttpRequest({'url': 'http://localhost:5516'}, release.scriptUsername, release.scriptUserPassword)
+
+    conn_fac = get_conn()
     counter_store_ci = get_counter_store_ci(counterStoreTitle)
 
     counter_store_ci['properties']['counterStorage'] = json.dumps(storageDict)
