@@ -355,6 +355,11 @@ class XLRProfile(collections.MutableMapping):
         print self.variables()
 
         newVariables = {}
+
+        #printing the variables for reporting
+        for k, v in self.variables().items():
+            print "key: %s \t value: %s \n" % (k, v)
+
         for key, value in self.variables().items():
             if re.match(self.__variable_start_regex, key) is None:
                 key = "${%s}" % (key)
