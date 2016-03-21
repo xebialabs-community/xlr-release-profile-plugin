@@ -289,6 +289,7 @@ class XLRProfile(collections.MutableMapping):
                 solution = self.resolve_variable(val)
                 if solution == None:
                     print "value for %s could not be found using the specified collector" % key
+                    sys.exit(2)
                 else:
                     print "retrieved value: %s for %s" % (solution, key)
                 self.set_variable(key, solution)
@@ -331,6 +332,7 @@ class XLRProfile(collections.MutableMapping):
             else:
                 print "collector type is not supported.... yet!!!"
                 pass
+
 
         if collector_val:
             ret_val = collector_val
