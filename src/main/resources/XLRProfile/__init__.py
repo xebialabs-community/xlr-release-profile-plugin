@@ -361,7 +361,7 @@ class XLRProfile(collections.MutableMapping):
                 if type(value) is dict:
                     value = self.resolve_variable(**value)
                 if value == None:
-                    print "a value could not be generated for %s .. we are unable to keep the release valid"
+                    print "a value could not be generated for %s .. we are unable to keep the release valid" % key
                     sys.exit(2)
                 newVariables[key] = value
         release.setVariableValues(newVariables)
