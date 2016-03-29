@@ -14,6 +14,7 @@ import com.xhaus.jyson.JysonCodec as json
 from com.xhaus.jyson import JSONDecodeError
 
 from requests.auth import HTTPBasicAuth
+from urllib3.exceptions import SSLError
 
 import com.xebialabs.xlrelease.api.XLReleaseServiceHolder as XLReleaseServiceHolder
 import com.xebialabs.deployit.repository.SearchParameters as SearchParameters
@@ -105,9 +106,16 @@ class JsonCollector(Collector):
             except requests.exceptions.HTTPError as e:
                 print "unable to retrieve json from url: %s" % url
                 print e.request
+                sleep 5
+                output = None
+            except SSLError as e:
+                print "same old ssl error again.. going to retry"
+                print e.request
+                sleep 5
                 output = None
 
             #try to decode it
+
             try:
                 print "%s responded with:" % url
                 print response.text
@@ -115,9 +123,11 @@ class JsonCollector(Collector):
                 break
             except Exception:
                 print "unable to decode information provided by %s" % url
+                sleep 5
                 output =  None
             except JSONDecodeError:
                 print "unable to decode output, not json formatted"
+                sleep 5
                 output = None
 
         return output
@@ -349,10 +359,6 @@ class XLRProfile(collections.MutableMapping):
         release = self.__releaseApi.getRelease(releaseId)
 
         #handle variables inside the release first
-        self.set_variables_from_dict(self.resolve_xlr_template_variables(releaseId))
-
-        print "resolved profile:"
-        print self.variables()
 
         newVariables = {}
 
