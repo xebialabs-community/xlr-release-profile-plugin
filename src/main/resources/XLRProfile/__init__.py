@@ -9,6 +9,7 @@ import sys
 import re
 import collections
 import requests
+import time
 
 import com.xhaus.jyson.JysonCodec as json
 from com.xhaus.jyson import JSONDecodeError
@@ -106,12 +107,12 @@ class JsonCollector(Collector):
             except requests.exceptions.HTTPError as e:
                 print "unable to retrieve json from url: %s" % url
                 print e.request
-                sleep 5
+                time.sleep(5)
                 output = None
             except SSLError as e:
                 print "same old ssl error again.. going to retry"
                 print e.request
-                sleep 5
+                time.sleep(5)
                 output = None
 
             #try to decode it
@@ -123,11 +124,11 @@ class JsonCollector(Collector):
                 break
             except Exception:
                 print "unable to decode information provided by %s" % url
-                sleep 5
+                time.sleep(5)
                 output =  None
             except JSONDecodeError:
                 print "unable to decode output, not json formatted"
-                sleep 5
+                time.sleep(5)
                 output = None
 
         return output
