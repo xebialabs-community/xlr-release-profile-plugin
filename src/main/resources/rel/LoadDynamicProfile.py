@@ -5,7 +5,10 @@
 #
 #from XLRProfile import XLRProfile as XLRProfile
 import sys
+import Base
 import XLRProfile
+
+reload(Base)
 reload(XLRProfile)
 
 
@@ -28,8 +31,7 @@ elif profileFromRepository:
 elif profiles:
     profile = XLRProfile(repoString=profiles.replace('\n','').replace('\t', '').replace('\r', ''))
 else:
-    print "no input profile found.. exiting"
-    sys.exit(2)
+    Base.fatal("no input profile found.. exiting")
 
 print str(profile)
 

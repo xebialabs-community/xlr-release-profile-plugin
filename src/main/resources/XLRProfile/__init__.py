@@ -10,6 +10,7 @@ import re
 import collections
 import requests
 import time
+import Base
 
 import com.xhaus.jyson.JysonCodec as json
 from com.xhaus.jyson import JSONDecodeError
@@ -98,19 +99,19 @@ class JsonCollector(Collector):
         while not retries or nr_tries < retries:
 
             nr_tries += 1
-            print "trying to fetch json from url %s , try nr: %i" % (url, nr_tries)
+            Base.info("trying to fetch json from url %s , try nr: %i" % (url, nr_tries))
 
             #fetch the json
             try:
                 response = requests.get(url, verify=False, **self.requests_params)
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
-                print "unable to retrieve json from url: %s" % url
+                Base.warning("unable to retrieve json from url: %s" % url)
                 print e.request
                 time.sleep(5)
                 output = None
-            except SSLError as e:
-                print "same old ssl error again.. going to retry"
+            except urllib3.exceptions.SSLError as e:
+                Base.warning("same old ssl error again.. going to retry")
                 print e.request
                 time.sleep(5)
                 output = None
@@ -118,18 +119,21 @@ class JsonCollector(Collector):
             #try to decode it
 
             try:
-                print "%s responded with:" % url
+                Base.info("%s responded with:" % url)
                 print response.text
                 output =  json.loads(str(response.text))
                 break
             except Exception:
-                print "unable to decode information provided by %s" % url
+                Base.warning("unable to decode information provided by %s" % url)
                 time.sleep(5)
                 output =  None
             except JSONDecodeError:
-                print "unable to decode output, not json formatted"
+                Base.warning("unable to decode output, not json formatted")
                 time.sleep(5)
                 output = None
+
+        if output == None:
+            Base.error("unable extract information from url: %s " % url)
 
         return output
 
@@ -153,17 +157,17 @@ class JsonCollector(Collector):
 
                 elif type(json[field]) == list:
                     if len(json[field]) < 2 :
-                        print "found %s" % (json[field][0])
+                        Base.info("found %s" % (json[field][0]))
                         return str(json[field][0])
 
                 elif len(path) == 0:
-                    print "found %s using path %s" % (field, path)
+                    Base.info( "found %s using path %s" % (field, path))
                     return str(json[field])
             else:
-                print "the requested path of %s could not be found in the json document. returning None instead"
+                Base.warning("the requested path of %s could not be found in the json document. returning None instead")
                 return None
         except Exception:
-            print "Error encountered during resolution"
+            Base.error("Error encountered during resolution")
 
 
 
@@ -219,10 +223,10 @@ class XLRProfile(collections.MutableMapping):
             if type(v) == str or type(v) == unicode:
                 v = str(v)
                 if '${' in v:
-                    print "found variable in %s" % v
+                    Base.info( "found variable in %s" % v)
                     for x, y in self.get_release_variables(release_id).items():
                         if x in v :
-                           print "replacing variable %s with value %s" % (x, y)
+                           Base.info("replacing variable %s with value %s" % (x, y))
                            v = v.replace(x, y)
                            var_dict[k] = v
 
@@ -300,10 +304,9 @@ class XLRProfile(collections.MutableMapping):
             if type(val) == dict:
                 solution = self.resolve_variable(val)
                 if solution == None:
-                    print "value for %s could not be found using the specified collector" % key
-                    sys.exit(2)
+                    Base.fatal("value for %s could not be found using the specified collector" % key)
                 else:
-                    print "retrieved value: %s for %s" % (solution, key)
+                    Base.info( "retrieved value: %s for %s" % (solution, key))
                 self.set_variable(key, solution)
 
     def resolve_variable(self, **params):
@@ -342,7 +345,7 @@ class XLRProfile(collections.MutableMapping):
                 col_params = params['collector']
                 collector_val = JsonCollector(**col_params).resolve()
             else:
-                print "collector type is not supported.... yet!!!"
+                Base.error("collector type is not supported.... yet!!!")
                 pass
 
 
@@ -361,7 +364,7 @@ class XLRProfile(collections.MutableMapping):
 
         self.set_variables_from_dict(self.resolve_xlr_template_variables(releaseId))
 
-        print "resolved profile:"
+        Base.info("resolved profile:")
         print self.variables()
 
         #handle variables inside the release first
@@ -370,7 +373,7 @@ class XLRProfile(collections.MutableMapping):
 
         #printing the variables for reporting
         for k, v in self.variables().items():
-            print "key: %s \t value: %s \n" % (k, v)
+            Base.info("key: %s \t value: %s \n" % (k, v))
 
         for key, value in self.variables().items():
             if re.match(self.__variable_start_regex, key) is None:
@@ -378,8 +381,7 @@ class XLRProfile(collections.MutableMapping):
                 if type(value) is dict:
                     value = self.resolve_variable(**value)
                 if value == None:
-                    print "a value could not be generated for %s .. we are unable to keep the release valid" % key
-                    sys.exit(2)
+                    Base.fatal("a value could not be generated for %s .. we are unable to keep the release valid" % key)
                 newVariables[key] = value
         release.setVariableValues(newVariables)
         self.__releaseApi.updateRelease(releaseId, release)
@@ -393,15 +395,15 @@ class XLRProfile(collections.MutableMapping):
                 for t in self.toggles:
                     task = self.get_task_by_phase_and_title(str(t["phase"]), str(t["task"]), release)
                     if task:
-                        print "removing task %s " % task
+                        Base.info("removing task %s " % task)
                         self.__repositoryService.delete(str(task))
 
                     else:
-                        print "task not found"
+                        Base.info("task not found")
             except TypeError:
-                print "toggles not valid... moving on"
+                Base.warning("toggles not valid... moving on")
         else:
-            print "no toggles found"
+            Base.warning("no toggles found")
 
 
 
