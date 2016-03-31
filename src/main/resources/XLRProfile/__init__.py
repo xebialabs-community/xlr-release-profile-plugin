@@ -359,6 +359,11 @@ class XLRProfile(collections.MutableMapping):
         """
         release = self.__releaseApi.getRelease(releaseId)
 
+        self.set_variables_from_dict(self.resolve_xlr_template_variables(releaseId))
+
+        print "resolved profile:"
+        print self.variables()
+
         #handle variables inside the release first
 
         newVariables = {}
