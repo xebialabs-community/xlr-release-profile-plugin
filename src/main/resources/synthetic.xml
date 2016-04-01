@@ -56,6 +56,11 @@
     <property name="taskAction" label="what to do when we get to the script" kind="string" required="true" default="set" hidden="true" category="input"/>
   </type>
 
+  <type type="rel.SetReleaseCounterString" extends="rel.releaseCounterTask" description="set a counter tied to this release but as string">
+    <property name="counterValue" label="value of the counter to set" kind="string" required="true" category="input"/>
+    <property name="taskAction" label="what to do when we get to the script" kind="string" required="true" default="setString" hidden="true" category="input"/>
+  </type>
+
   <type type="rel.incrementReleaseCounter" extends="rel.releaseCounterTask" description="get the release counter and increment it before returning">
     <property name="outputVariable" label="name of the variable" kind="string" required="true" category="output"/>
     <property name="taskAction" label="what to do when we get to the script" kind="string" required="true" default="increment" hidden="true" category="input"/>

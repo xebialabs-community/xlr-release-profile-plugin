@@ -11,15 +11,18 @@ class bcolors:
 class Base():
 
 
-
+    @classmethod
     def error(msg):
         print bcolors.FAIL + "ERROR: %s " % msg  + bcolors.ENDC
 
+    @classmethod
     def info(msg):
         print bcolors.OKBLUE + "INFO: %s" % msg + bcolors.ENDC
 
+    @classmethod
     def warning(msg):
         print bcolors.WARNING + "WARNING: %s" % msg + bcolors.ENDC
 
+    @classmethod
     def fatal(msg):
         print bcolors.FAIL + "FAIL: %s" %  msg + bcolors.ENDC

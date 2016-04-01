@@ -10,13 +10,12 @@ import re
 import collections
 import requests
 import time
-import Base
+from Base import Base
 
 import com.xhaus.jyson.JysonCodec as json
 from com.xhaus.jyson import JSONDecodeError
 
 from requests.auth import HTTPBasicAuth
-from urllib3.exceptions import SSLError
 
 import com.xebialabs.xlrelease.api.XLReleaseServiceHolder as XLReleaseServiceHolder
 import com.xebialabs.deployit.repository.SearchParameters as SearchParameters

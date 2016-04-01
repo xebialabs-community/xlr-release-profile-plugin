@@ -84,6 +84,9 @@ print taskAction
 if taskAction == 'set':
     print "setting release counter"
     create_or_update_counter(counterStore, counterName, counterValue)
+elif taskAction == 'setString':
+    print "assigning a string to the release counter"
+    create_or_update_counter(counterStore, counterName, counterValue)
 elif taskAction == 'get':
     print "getting release counter"
     outputVariable = get_counter_value(counterStore, counterName)
