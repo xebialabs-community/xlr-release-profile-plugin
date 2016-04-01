@@ -8,7 +8,6 @@ import sys
 from Base import Base
 import XLRProfile
 
-reload(Base)
 reload(XLRProfile)
 
 
