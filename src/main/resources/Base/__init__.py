@@ -11,18 +11,18 @@ class bcolors:
 class Base():
 
 
-    @classmethod
+    @staticmethod
     def error(msg):
         print bcolors.FAIL + "ERROR: %s " % msg  + bcolors.ENDC
 
-    @classmethod
+    @staticmethod
     def info(msg):
         print bcolors.OKBLUE + "INFO: %s" % msg + bcolors.ENDC
 
-    @classmethod
+    @staticmethod
     def warning(msg):
         print bcolors.WARNING + "WARNING: %s" % msg + bcolors.ENDC
 
-    @classmethod
+    @staticmethod
     def fatal(msg):
         print bcolors.FAIL + "FAIL: %s" %  msg + bcolors.ENDC

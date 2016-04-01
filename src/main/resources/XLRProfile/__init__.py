@@ -12,6 +12,8 @@ import requests
 import time
 from Base import Base
 
+import urllib3.exceptions
+
 import com.xhaus.jyson.JysonCodec as json
 from com.xhaus.jyson import JSONDecodeError
 
@@ -212,6 +214,7 @@ class XLRProfile(collections.MutableMapping):
 
     def resolve_xlr_template_variables(self, release_id, var_dict = None):
 
+
         #if no var_dict specified get the profiles variables as default action
         if var_dict == None:
             var_dict = self.variables()
@@ -222,9 +225,11 @@ class XLRProfile(collections.MutableMapping):
             if type(v) == str or type(v) == unicode:
                 v = str(v)
                 if '${' in v:
-                    Base.info( "found variable in %s" % v)
+                    Base.info("found variable in %s" % v)
+
                     for x, y in self.get_release_variables(release_id).items():
                         if x in v :
+                           print "REPLACE"
                            Base.info("replacing variable %s with value %s" % (x, y))
                            v = v.replace(x, y)
                            var_dict[k] = v

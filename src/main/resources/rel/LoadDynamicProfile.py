@@ -5,7 +5,10 @@
 #
 #from XLRProfile import XLRProfile as XLRProfile
 import sys
+import Base
+reload(Base)
 from Base import Base
+
 import XLRProfile
 
 reload(XLRProfile)
