@@ -43,10 +43,12 @@ __release = getCurrentRelease()
 
 def validUrl(url):
     try:
-        r = requests.head(url)
+        r = requests.head(url, verify=False)
         r.raise_for_status()
+        Base.info('%s might be a valid url' % url)
         return True
-    except requests.exceptions.HTTPError:
+    except Exception:
+        Base.warning('%s does not appear to be a valid url' % url)
         return False
 
 profileList = []
