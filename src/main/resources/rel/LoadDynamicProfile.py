@@ -53,8 +53,7 @@ def validUrl(url):
             r.raise_for_status()
             Base.info('%s might be a valid url' % url)
             return True
-        except Exception as e:
-            Base.warning(e)
+        except Exception:
             Base.warning('encountered a minor error going to retry')
     return False
 
