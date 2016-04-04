@@ -10,7 +10,7 @@ reload(Base)
 from Base import Base
 import requests
 import XLRProfile
-
+import urllib3
 reload(XLRProfile)
 
 
@@ -40,16 +40,25 @@ __release = getCurrentRelease()
 # handle the profile
 # profile.persist_variables_to_release(__release.id)
 # profile.handle_toggles(__release.id)
+def doHeadRequest(url):
+    return requests.head(url, verify=False)
+
 
 def validUrl(url):
-    try:
-        r = requests.head(url, verify=False)
-        r.raise_for_status()
-        Base.info('%s might be a valid url' % url)
-        return True
-    except Exception:
-        Base.warning('%s does not appear to be a valid url' % url)
-        return False
+    x = int(0)
+    while x < int(11):
+        x += 1
+        try:
+            r = doHeadRequest(url)
+            r.raise_for_status()
+            Base.info('%s might be a valid url' % url)
+            return True
+        except urllib3.exceptions.SSLError:
+            Base.warning('encountered a minor error going to retry')
+        except Exception:
+            Base.warning('%s does not appear to be a valid url' % url)
+            return False
+
 
 profileList = []
 
@@ -57,24 +66,14 @@ if profileUrl:
     for url in profileUrl.split(';'):
         Base.info("trying to add profile from url: %s" % url)
         if validUrl(url):
-            profileList.extend(XLRProfile(url=url))
-        else:
-            Base.warning("tried to add profile from url: %s but failed to do so" % url)
-
-if profileFromRepository:
-    profileList.extend(XLRProfile(repoId=profileFromRepository))
-if profiles:
-    profileList.extend(XLRProfile(repoString=profiles.replace('\n','').replace('\t', '').replace('\r', '')))
-
-
-if len(profileList) < 1:
-    Base.fatal("no input profile found.. exiting")
-
+          p = XLRProfile(url=url)
+          p.persist_variables_to_release(__release.id)
+          p.handle_toggles(__release.id)            
+elif profileFromRepository:
+    p = XLRProfile(repoId=profileFromRepository)
+    p.persist_variables_to_release(__release.id)
+    p.handle_toggles(__release.id)
+elif profiles:
+    profile = XLRProfile(repoString=profiles.replace('\n','').replace('\t', '').replace('\r', ''))
 else:
-    print profileList
-    for p in profileList:
-        print p
-        p.persist_variables_to_release(__release.id)
-        p.handle_toggles(__release.id)
-
-
+   Base.fatal("no input profile found.. exiting")
