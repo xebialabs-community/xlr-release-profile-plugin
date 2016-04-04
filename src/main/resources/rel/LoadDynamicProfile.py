@@ -53,14 +53,14 @@ def validUrl(url):
             r.raise_for_status()
             Base.info('%s might be a valid url' % url)
             return True
-        except urllib3.exceptions.SSLError:
+        except Exception as e:
+            Base.warning(e)
             Base.warning('encountered a minor error going to retry')
-        except Exception:
-            Base.warning('%s does not appear to be a valid url' % url)
-            return False
+    return False
 
 
 profileList = []
+atLeastOne = False
 
 if profileUrl:
     for url in profileUrl.split(';'):
@@ -68,12 +68,20 @@ if profileUrl:
         if validUrl(url):
           p = XLRProfile(url=url)
           p.persist_variables_to_release(__release.id)
-          p.handle_toggles(__release.id)            
+          p.handle_toggles(__release.id)
+          atLeastOne = True
 elif profileFromRepository:
     p = XLRProfile(repoId=profileFromRepository)
     p.persist_variables_to_release(__release.id)
     p.handle_toggles(__release.id)
+    atLeastOne = True
 elif profiles:
     profile = XLRProfile(repoString=profiles.replace('\n','').replace('\t', '').replace('\r', ''))
+    p.persist_variables_to_release(__release.id)
+    p.handle_toggles(__release.id)
+    atLeastOne = True
 else:
    Base.fatal("no input profile found.. exiting")
+
+if atLeastOne == False:
+    Base.fatal("no input profile found.. exiting")
