@@ -69,8 +69,11 @@ if profiles:
 
 if len(profileList) < 1:
     Base.fatal("no input profile found.. exiting")
+
 else:
+    print profileList
     for p in profileList:
+        print p
         p.persist_variables_to_release(__release.id)
         p.handle_toggles(__release.id)
 
