@@ -106,16 +106,21 @@ class JsonCollector(Collector):
             try:
                 response = requests.get(url, verify=False, **self.requests_params)
                 response.raise_for_status()
-            except requests.exceptions.HTTPError as e:
+            except Exception:
                 Base.warning("unable to retrieve json from url: %s" % url)
                 print e.request
                 time.sleep(5)
                 output = None
-            except urllib3.exceptions.SSLError as e:
-                Base.warning("same old ssl error again.. going to retry")
-                print e.request
-                time.sleep(5)
-                output = None
+            # except requests.exceptions.HTTPError as e:
+            #     Base.warning("unable to retrieve json from url: %s" % url)
+            #     print e.request
+            #     time.sleep(5)
+            #     output = None
+            # except urllib3.exceptions.SSLError as e:
+            #     Base.warning("same old ssl error again.. going to retry")
+            #     print e.request
+            #     time.sleep(5)
+            #     output = None
 
             #try to decode it
 
