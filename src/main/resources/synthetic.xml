@@ -32,7 +32,7 @@
   </type>
 
   <type type="rel.LoadDynamicProfile" extends="rel.ProfileTask" description="Load release profile">
-    <property name="profileUrl" label="profile url" required="false" category="input" />
+    <property name="profileUrl" label="profile url" required="false" category="input"  />
     <property name="profiles" label="inline profile to load" required="false" category="input" size="large" />
     <property name="profileFromRepository" label="Profile stored in xlr repository" category="input"  required="false" />
   </type>
