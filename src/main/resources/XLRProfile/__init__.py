@@ -103,13 +103,22 @@ class JsonCollector(Collector):
             Base.info("trying to fetch json from url %s , try nr: %i" % (url, nr_tries))
 
             #fetch the json
+            # try:
+            #     response = requests.get(url, verify=False, **self.requests_params)
+            #     response.raise_for_status()
+            # except Exception:
+            #     Base.warning("unable to retrieve json from url: %s" % url)
+            #     time.sleep(5)
+            #     output = None
+
             try:
                 response = requests.get(url, verify=False, **self.requests_params)
-                response.raise_for_status()
-            except Exception:
-                Base.warning("unable to retrieve json from url: %s" % url)
-                time.sleep(5)
-                output = None
+                if response.status_code != requests.status_codes.ok
+
+                    Base.warning("unable to retrieve json from url: %s" % url)
+                    time.sleep(5)
+                    output = None
+
             # except requests.exceptions.HTTPError as e:
             #     Base.warning("unable to retrieve json from url: %s" % url)
             #     print e.request
