@@ -10,6 +10,7 @@ reload(Base)
 from Base import Base
 import requests
 import XLRProfile
+
 import urllib3
 reload(XLRProfile)
 
@@ -75,7 +76,7 @@ elif profileFromRepository:
     p.handle_toggles(__release.id)
     atLeastOne = True
 elif profiles:
-    profile = XLRProfile(repoString=profiles.replace('\n','').replace('\t', '').replace('\r', ''))
+    p = XLRProfile(repoString=profiles.replace('\n','').replace('\t', '').replace('\r', ''))
     p.persist_variables_to_release(__release.id)
     p.handle_toggles(__release.id)
     atLeastOne = True

@@ -92,59 +92,57 @@ class JsonCollector(Collector):
         """
 
         #adding in retry to make all this stuff a little more robust
+        # if all else fails .. we are going to retry 10 times ..
         retries = 10
         nr_tries = 0
 
         output = None
 
-        while not retries or nr_tries < retries:
-
+        while True:
+            # increment trie counter
             nr_tries += 1
             Base.info("trying to fetch json from url %s , try nr: %i" % (url, nr_tries))
 
-            #fetch the json
-            # try:
-            #     response = requests.get(url, verify=False, **self.requests_params)
-            #     response.raise_for_status()
-            # except Exception:
-            #     Base.warning("unable to retrieve json from url: %s" % url)
-            #     time.sleep(5)
-            #     output = None
 
-            try:
-                response = requests.get(url, verify=False, **self.requests_params)
-                if response.status_code != requests.status_codes.ok
+            # try to fetch a response
+            response = requests.get(url, verify=False, **self.requests_params)
 
-                    Base.warning("unable to retrieve json from url: %s" % url)
-                    time.sleep(5)
-                    output = None
+            # if the status code is above 299 (which usually means that we have a problem) retry
+            if response.status_code > 299:
 
-            # except requests.exceptions.HTTPError as e:
-            #     Base.warning("unable to retrieve json from url: %s" % url)
-            #     print e.request
-            #     time.sleep(5)
-            #     output = None
-            # except urllib3.exceptions.SSLError as e:
-            #     Base.warning("same old ssl error again.. going to retry")
-            #     print e.request
-            #     time.sleep(5)
-            #     output = None
+                # if the number of retries exceeds 10 fail hard .. cuz that is how we roll
+                if nr_tries > retries:
+                  Base.fatal('Unable to retrieve json from url after %i retries' % retries )
 
-            #try to decode it
+                # warn the user
+                Base.warning("unable to retrieve json from url: %s" % url)
 
-            try:
-                Base.info("%s responded with:" % url)
-                print response.text
-                output =  json.loads(str(response.text))
-                break
-            except Exception:
-                Base.warning("unable to decode information provided by %s" % url)
-                time.sleep(5)
-                output =  None
-            except JSONDecodeError:
-                Base.warning("unable to decode output, not json formatted")
-                time.sleep(5)
+                # it is good form to back off a failing remote system a bit .. every retry we are gonna wait 5 seconds longer . Coffee time !!!!
+                sleeptime = 5 * int(nr_tries)
+
+                Base.warning("timing out for: %i seconds" % sleeptime)
+
+                # sleep dammit .. i need it ..
+                time.sleep(sleeptime)
                 output = None
+            else:
+                # if we do get a proper response code .. break out of the loop
+                break
+
+
+        try:
+            Base.info("%s responded with:" % url)
+            print response.text
+            output =  json.loads(str(response.text))
+
+        except Exception:
+            Base.warning("unable to decode information provided by %s" % url)
+            time.sleep(5)
+            output =  None
+        except JSONDecodeError:
+            Base.warning("unable to decode output, not json formatted")
+            time.sleep(5)
+            output = None
 
         if output == None:
             Base.error("unable extract information from url: %s " % url)
