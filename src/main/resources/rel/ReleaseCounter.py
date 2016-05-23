@@ -1,99 +1,139 @@
-import sys
 
 import com.xhaus.jyson.JysonCodec as json
 
-def get_user():
-    if xlreleaseUser == None:
-        return str(release.scriptUsername)
-    return str(xlreleaseUser)
+import com.xebialabs.xlrelease.api.XLReleaseServiceHolder as XLReleaseServiceHolder
+import com.xebialabs.deployit.repository.SearchParameters as SearchParameters
+import com.xebialabs.deployit.plugin.api.udm.ConfigurationItem as ConfigurationItem
+import com.xebialabs.xlrelease.domain.Configuration as Configuration
+import com.xebialabs.deployit.plugin.api.reflect.Type as Type
+import com.xebialabs.deployit.jcr
+import com.xebialabs.deployit.repository
 
-def get_password():
-    if xlreleasePassword == None:
-        return str(release.scriptUserPassword)
-    return str(xlreleasePassword)
+from Base import Base
 
-def get_conn():
+import datetime
 
-    user = get_user()
-    password = get_password()
+# Globals
 
-
-    return HttpRequest({'url': xlreleaseUrl }, user, password)
-
-def get_counter_store_ci(counterStoreTitle):
-
-    conn_fac = get_conn()
-
-
-    response = conn_fac.get(str('/configurations'), contentType = 'application/json')
-
-    data = json.loads(response.getResponse())
+__repositoryService = XLReleaseServiceHolder.getRepositoryService()
+StorageTimestamp = " "
 
 
 
-    counter_store_ci = None
+def time_stamp():
+    return str(datetime.datetime.now().isoformat())
 
-    for i in range(0, len(data)):
-        if data[i]['type'] == 'rel.ReleaseCounterStore' and counterStoreTitle == data[i]['properties']['title']:
-                counter_store_ci = data[i]
-                break
+def get_counter_storage(counterStoreTitle, updateTimeStamp=True):
 
-    if not counter_store_ci:
-        print "ERROR: Unable to find counter store '%s'" % (counterStoreTitle)
-        sys.exit(1)
+    global StorageTimestamp
 
 
-    return counter_store_ci
+    counter_store_ci = loadCiFromRepo(counterStoreTitle, 'rel.ReleaseCounterStore')
+    if updateTimeStamp == True:
+        StorageTimestamp = counter_store_ci.getProperty('modTime')
 
-def save_counter_store(counterStoreTitle, storageDict):
+    return json.loads(counter_store_ci.getProperty('counterStorage'))
 
-    conn_fac = get_conn()
-    counter_store_ci = get_counter_store_ci(counterStoreTitle)
+def get_counter_timestamp(counterStoreTitle):
 
-    counter_store_ci['properties']['counterStorage'] = json.dumps(storageDict)
+    return loadCiFromRepo(counterStoreTitle, 'rel.ReleaseCounterStore').getProperty('modTime')
 
-    response = conn_fac.put('/configurations/%s' % (counter_store_ci['id']), json.dumps(counter_store_ci), contentType = 'application/json')
-    if not response.isSuccessful:
-        print "ERROR: Unable to update counter store '%s':" % (counterStoreTitle)
-        response.errorDump()
-        sys.exit(1)
+def update_counter_storage(counterStoreTitle, key, value):
 
-def get_counter_store_storage(counterStoreTitle):
-    cs = get_counter_store_ci(counterStoreTitle)
-    if type(cs) != dict:
-        print "ERROR: unexpected response from counter Store: %s" % counterStoreTitle
-        sys.exit(1)
+    # get a timestamp.
+    # because we do not want two proccesses saving to the same store at the same time (data-loss is not a good thing)
 
-    return json.loads(cs['properties']['counterStorage'])
+    Base.debug("attempting to update counterStorage", task)
+
+    while True:
+        data = get_counter_storage(counterStoreTitle)
+
+        if type(data) == dict:
+           data[key] = value
+        else:
+            data = {key : value}
+
+        if updateCiToRepo(counterStoreTitle, {'counterStorage': data} ) == True:
+            Base.debug("Counter storage ci: %s saved succesfully" % counterStoreTitle, task)
+            return True
+
+        Base.warning("unable to save counter due to deadlock situation.... retrying")
+
+
+def updateCiToRepo(storeName, data):
+
+
+
+    Base.debug("writing ci: %s to repo" % storeName, task)
+
+    global StorageTimestamp
+    # get the store
+    store = loadCiFromRepo(storeName, 'rel.ReleaseCounterStore')
+
+    # set the properties on the ci to be updated
+    for k, v in data.items():
+
+        store.setProperty(k, json.dumps(v))
+
+    store.setProperty('modTime', time_stamp())
+    # write back to xlr
+    if get_counter_timestamp(storeName) == StorageTimestamp:
+        try:
+            __repositoryService.update(store)
+            return True
+        except com.xebialabs.deployit.jcr.RuntimeRepositoryException as e:
+            Base.debug('Error detected while saving %s' % storeName, task)
+            Base.debug('Error: %s' % e, task)
+            return False
+        except com.xebialabs.deployit.repository.ItemConflictException as e:
+            Base.debug('Error detected while saving %s' % storeName, task)
+            Base.debug('Error: %s' % e, task)
+            return False
+    else:
+        Base.debug('deadlock collision detected while saving %s' % storeName, task)
+        return False
+
+
+
+def loadCiFromRepo(storeName, type):
+
+    sp = SearchParameters()
+    sp.setType(Type.valueOf(type))
+
+    for p in __repositoryService.listEntities(sp):
+
+        if str(p.getTitle()) == storeName:
+            return p
+
+    Base.fatal("unable to find json data repository: %s" % storeName)
+
 
 def create_or_update_counter(counterStoreTitle, key, value):
-    store = get_counter_store_storage(counterStoreTitle)
-    store[key] = value
-    save_counter_store(counterStoreTitle, store)
+
+    update_counter_storage(counterStoreTitle, key, value)
 
 def get_counter_value(counterStoreTitle, key):
     try:
-      cs = get_counter_store_storage(counterStoreTitle)
+      cs = get_counter_storage(counterStoreTitle)
       return cs[key]
     except KeyError:
       return 1
 
-
-
-print taskAction
 if taskAction == 'set':
-    print "setting release counter"
-    create_or_update_counter(counterStore, counterName, counterValue)
+    Base.info("setting release counter")
+    update_counter_storage(counterStore, counterName, counterValue)
 elif taskAction == 'setString':
-    print "assigning a string to the release counter"
-    create_or_update_counter(counterStore, counterName, counterValue)
+    Base.info("assigning a string to the release counter")
+    update_counter_storage(counterStore, counterName, counterValue)
 elif taskAction == 'get':
-    print "getting release counter"
+    Base.info("getting release counter")
     outputVariable = get_counter_value(counterStore, counterName)
 elif taskAction == 'increment':
-    print "incrementing release counter"
+    Base.info("incrementing release counter")
     outputVariable = get_counter_value(counterStore, counterName)
     outputVariable = outputVariable + 1
-    create_or_update_counter(counterStore, counterName, outputVariable)
+    update_counter_storage(counterStore, counterName, outputVariable)
 else:
-    print "nothing to do "
+    Base.info("nothing to do ")
+
+

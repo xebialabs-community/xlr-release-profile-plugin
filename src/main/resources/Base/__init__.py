@@ -29,3 +29,7 @@ class Base():
     def fatal(msg):
         print bcolors.FAIL + "FAIL: %s " %  msg + bcolors.ENDC
         sys.exit(2)
+
+    @staticmethod
+    def debug(msg, task):
+        print bcolors.WARNING + "DEBUG:%s:%s %s " %(task.title, task.id, msg) + bcolors.ENDC

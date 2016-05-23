@@ -44,9 +44,6 @@
    <type type="rel.releaseCounterTask" extends="rel.ProfileTask" virtual="true">
     <property name="counterStore" default="default" label="name of the counter Store" kind="string" required="true" category="input"/>
     <property name="counterName" label="name of the counter" kind="string" required="true" category="input"/>
-    <property name="xlreleaseUrl" hidden="false" required="true" default="https://localhost:5516" category="input"/>
-    <property name="xlreleaseUser" hidden="false" required="false" kind="string" category="input"/>
-    <property name="xlreleasePassword" hidden="false" required="false" kind="string" category="input" password="true"/>
     <property name="iconLocation" default="rel/profile.png" hidden="true" />
     <property name="scriptLocation" default="rel/ReleaseCounter.py" category="input" hidden="true" />
   </type>
@@ -73,6 +70,7 @@
 
   <type type="rel.ReleaseCounterStore" extends="xlrelease.Configuration">
     <property name="counterStorage" default="{}" kind="string" />
+    <property name="modTime" label="time last modification" kind="string" />
   </type>
 
   <!-- self tagging releases -->
