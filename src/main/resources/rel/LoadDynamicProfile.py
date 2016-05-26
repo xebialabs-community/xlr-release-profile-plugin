@@ -84,4 +84,4 @@ else:
    Base.fatal("no input profile found.. exiting")
 
 if atLeastOne == False:
-    Base.fatal("no input profile found.. exiting")g")
+    Base.fatal("no input profile found.. exiting")
