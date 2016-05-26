@@ -68,7 +68,7 @@ if profileUrl:
         if validUrl(url):
           p = XLRProfile(url=url)
           p.persist_variables_to_release(__release.id)
-          p.handle_toggles(__release.i elif profileFromRepository:
+          p.handle_toggles(__release.id) elif profileFromRepository:
     p = XLRProfile(repoId=profileFromRepository)
     p.persist_variables_to_release(__release.id)
     p.handle_toggles(__release.id)
