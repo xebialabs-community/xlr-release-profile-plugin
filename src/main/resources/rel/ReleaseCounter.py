@@ -31,7 +31,7 @@ def get_ci_object(ciType, id):
     configurationItem = type.descriptor.newInstance(id)
     return configurationItem
 
-def checkForValidations(ci):
+def check_ci_for_validations(ci):
     if isinstance(ci, com.xebialabs.deployit.engine.api.dto.ValidatedConfigurationItem) and not ci.validations.isEmpty():
         raise ValueError('Configuration item contained validation errors: %s' % ci.validations.toString())
 
@@ -47,7 +47,7 @@ def create_ci(storeName):
 
     ci.setTitle(storeName)
 
-    checkForValidations(ci)
+    check_ci_for_validations(ci)
 
     try:
         __repositoryService.create(ci)
@@ -65,9 +65,9 @@ def destroy_counter_store(storeName):
     :return:
     '''
 
-    if ciExists(storeName, __ciType):
+    if ci_exists(storeName, __ciType):
 
-        ci = loadCiFromRepo(storeName, __ciType )
+        ci = load_ci_from_repo(storeName, __ciType )
 
         __repositoryService.delete(ci.getId())
         Base.info("Counter Store: %s destroyed.... BOOOM" % storeName)
@@ -84,7 +84,7 @@ def get_counter_storage(counterStoreTitle, updateTimeStamp=True):
     global StorageTimestamp
 
 
-    counter_store_ci = loadCiFromRepo(counterStoreTitle, __ciType)
+    counter_store_ci = load_ci_from_repo(counterStoreTitle, __ciType)
     if updateTimeStamp == True:
         StorageTimestamp = counter_store_ci.getProperty('modTime')
 
@@ -92,14 +92,14 @@ def get_counter_storage(counterStoreTitle, updateTimeStamp=True):
 
 def get_counter_timestamp(counterStoreTitle):
 
-    return loadCiFromRepo(counterStoreTitle, __ciType).getProperty('modTime')
+    return load_ci_from_repo(counterStoreTitle, __ciType).getProperty('modTime')
 
 def update_counter_storage(counterStoreTitle, key, value):
 
     # get a timestamp.
     # because we do not want two proccesses saving to the same store at the same time (data-loss is not a good thing)
 
-    Base.debug("attempting to update counterStorage", task)
+    Base.info("attempting to update counterStorage")
 
     while True:
         data = get_counter_storage(counterStoreTitle)
@@ -109,22 +109,22 @@ def update_counter_storage(counterStoreTitle, key, value):
         else:
             data = {key : value}
 
-        if updateCiToRepo(counterStoreTitle, {'counterStorage': data} ) == True:
-            Base.debug("Counter storage ci: %s saved succesfully" % counterStoreTitle, task)
+        if update_ci_to_repo(counterStoreTitle, {'counterStorage': data} ) == True:
+            Base.info("Counter storage ci: %s saved succesfully" % counterStoreTitle)
             return True
 
         Base.warning("unable to save counter due to deadlock situation.... retrying")
 
 
-def updateCiToRepo(storeName, data):
+def update_ci_to_repo(storeName, data):
 
 
 
-    Base.debug("writing ci: %s to repo" % storeName, task)
+    Base.info("writing ci: %s to repo" % storeName)
 
     global StorageTimestamp
     # get the store
-    store = loadCiFromRepo(storeName, __ciType)
+    store = load_ci_from_repo(storeName, __ciType)
 
     # set the properties on the ci to be updated
     for k, v in data.items():
@@ -138,20 +138,20 @@ def updateCiToRepo(storeName, data):
             __repositoryService.update(store)
             return True
         except com.xebialabs.deployit.jcr.RuntimeRepositoryException as e:
-            Base.debug('Error detected while saving %s' % storeName, task)
-            Base.debug('Error: %s' % e, task)
+            Base.error('Error detected while saving %s' % storeName)
+            Base.error('Error: %s' % e, task)
             return False
         except com.xebialabs.deployit.repository.ItemConflictException as e:
-            Base.debug('Error detected while saving %s' % storeName, task)
-            Base.debug('Error: %s' % e, task)
+            Base.error('Error detected while saving %s' % storeName)
+            Base.error('Error: %s' % e, task)
             return False
     else:
-        Base.debug('deadlock collision detected while saving %s' % storeName, task)
+        Base.error('deadlock collision detected while saving %s' % storeName)
         return False
 
 
 
-def loadCiFromRepo(storeName, type):
+def load_ci_from_repo(storeName, type):
 
     sp = SearchParameters()
     sp.setType(Type.valueOf(type))
@@ -163,7 +163,7 @@ def loadCiFromRepo(storeName, type):
 
     Base.fatal("unable to find json data repository: %s" % storeName)
 
-def ciExists(storeName, type):
+def ci_exists(storeName, type):
 
     sp = SearchParameters()
     sp.setType(Type.valueOf(type))
