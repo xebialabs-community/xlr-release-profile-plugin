@@ -63,18 +63,20 @@ profileList = []
 atLeastOne = False
 
 if profileUrl:
-    for url in profiledsfaasdfasdfsadfsdfUrl.split(';'):
+    for url in profileUrl.split(';'):
         Base.info("trying to add profile from url: %s" % url)
         if validUrl(url):
           p = XLRProfile(url=url)
           p.persist_variables_to_release(__release.id)
-          p.handle_toggles(__release.id) elif profileFromRepository:
+          p.handle_toggles(__release.id)
+          atLeastOne = True
+elif profileFromRepository:
     p = XLRProfile(repoId=profileFromRepository)
     p.persist_variables_to_release(__release.id)
     p.handle_toggles(__release.id)
     atLeastOne = True
 elif profiles:
-    p = XLRProfile(repoString=profiles.replace('\n','').replace('\t', '').replace('\r', ''))
+    profile = XLRProfile(repoString=profiles.replace('\n','').replace('\t', '').replace('\r', ''))
     p.persist_variables_to_release(__release.id)
     p.handle_toggles(__release.id)
     atLeastOne = True
@@ -82,4 +84,4 @@ else:
    Base.fatal("no input profile found.. exiting")
 
 if atLeastOne == False:
-    Base.fatal("no input profile found.. exiting")
+    Base.fatal("no input profile found.. exiting")g")
