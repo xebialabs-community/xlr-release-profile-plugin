@@ -57,6 +57,7 @@ def create_ci(storeName):
         Base.error("Counter Store already exists... moving on")
     except Exception:
         Base.fatal('an error occured while trying to create Counter Store: %s' % storeName)
+        sys.exit(2)
 
 def destroy_counter_store(storeName):
     '''
@@ -162,6 +163,7 @@ def load_ci_from_repo(storeName, type):
             return p
 
     Base.fatal("unable to find json data repository: %s" % storeName)
+    sys.exit(2)
 
 def ci_exists(storeName, type):
 

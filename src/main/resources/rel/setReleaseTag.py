@@ -2,7 +2,7 @@ import sys
 
 import com.xebialabs.xlrelease.api.XLReleaseServiceHolder as XLReleaseServiceHolder
 
-
+tagList = tag.split(',')
 
 #get the releaseApi
 releaseApi = XLReleaseServiceHolder.getReleaseApi()
@@ -20,11 +20,11 @@ print tags
 
 
 #add the tag
+for tag in tagList:
+    tags.add(str(tag))
 
-tags.add(str(tag))
-
-#print and be merry
-print "adding tag: %s to release: %s" % (tag, release.id)
+    #print and be merry
+    print "adding tag: %s to release: %s" % (tag, release.id)
 
 # update the release with the new set of tags
 this_release.setTags(tags)

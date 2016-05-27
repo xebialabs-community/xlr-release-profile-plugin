@@ -82,6 +82,8 @@ elif profiles:
     atLeastOne = True
 else:
    Base.fatal("no input profile found.. exiting")
+   sys.exit(2)
 
 if atLeastOne == False:
     Base.fatal("no input profile found.. exiting")
+    sys.exit(2)

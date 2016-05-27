@@ -113,6 +113,7 @@ class JsonCollector(Collector):
                 # if the number of retries exceeds 10 fail hard .. cuz that is how we roll
                 if nr_tries > retries:
                   Base.fatal('Unable to retrieve json from url after %i retries' % retries )
+                  sys.exit(2)
 
                 # warn the user
                 Base.warning("unable to retrieve json from url: %s" % url)
@@ -321,6 +322,7 @@ class XLRProfile(collections.MutableMapping):
                 solution = self.resolve_variable(val)
                 if solution == None:
                     Base.fatal("value for %s could not be found using the specified collector" % key)
+                    sys.exit(2)
                 else:
                     Base.info( "retrieved value: %s for %s" % (solution, key))
                 self.set_variable(key, solution)
@@ -398,6 +400,7 @@ class XLRProfile(collections.MutableMapping):
                     value = self.resolve_variable(**value)
                 if value == None:
                     Base.fatal("a value could not be generated for %s .. we are unable to keep the release valid" % key)
+                    sys.exit(2)
                 newVariables[key] = value
         release.setVariableValues(newVariables)
         self.__releaseApi.updateRelease(releaseId, release)
