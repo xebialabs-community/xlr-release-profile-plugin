@@ -140,11 +140,11 @@ def update_ci_to_repo(storeName, data):
             return True
         except com.xebialabs.deployit.jcr.RuntimeRepositoryException as e:
             Base.error('Error detected while saving %s' % storeName)
-            Base.error('Error: %s' % e, task)
+            Base.error('Error: %s' % e)
             return False
         except com.xebialabs.deployit.repository.ItemConflictException as e:
             Base.error('Error detected while saving %s' % storeName)
-            Base.error('Error: %s' % e, task)
+            Base.error('Error: %s' % e)
             return False
     else:
         Base.error('deadlock collision detected while saving %s' % storeName)
