@@ -1,0 +1,50 @@
+
+
+
+
+
+//{
+//  "phases":[{
+//    "build":{
+//      "name": "build_$appName",
+//      "steps": [{
+//        "xlrelease.CreateReleaseTask": {
+//      "title": "$appName",
+//      "status": "planned",
+//      "owner": "",
+//      "templateId": "Applications/waslp_Build",
+//      "newReleaseTitle": "testTemplate",
+//      "templateVariables": [
+//        {
+//          "key": "appName",
+//          "value": "$appName"
+//        },
+//        {
+//          "key": "release",
+//          "value": "$release"
+//        }
+//      ]
+//              "variables": ["appname", "release"]
+//
+//    }}]}},{
+//    "deploy_$env":{}
+//      {"xlrelease.CreateReleaseTask": {
+//      "title": "$appName",
+//      "status": "planned",
+//      "owner": "",
+//      "templateId": "Applications/waslp_deploy",
+//      "newReleaseTitle": "testTemplate",
+//      "templateVariables": [
+//        {
+//          "key": "appName",
+//          "value": "$appName"
+//        },
+//        {
+//          "key": "release",
+//          "value": "$release"
+//        }
+//      ]
+//    },
+//    "variables": ["appname", "release","environments"]
+//  }
+//  ]]

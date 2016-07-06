@@ -1,27 +1,26 @@
-
 # THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS
 # FOR A PARTICULAR PURPOSE. THIS CODE AND INFORMATION ARE NOT SUPPORTED BY XEBIALABS.
 #
-#from XLRProfile import XLRProfile as XLRProfile
+# from XLRProfile import XLRProfile as XLRProfile
 #
 import sys
 import re
 import collections
-import requests
 import time
+import random
+
+import requests
 from Base import Base
-
-import urllib3.exceptions
-
 import com.xhaus.jyson.JysonCodec as json
 from com.xhaus.jyson import JSONDecodeError
-
 from requests.auth import HTTPBasicAuth
-
 import com.xebialabs.xlrelease.api.XLReleaseServiceHolder as XLReleaseServiceHolder
 import com.xebialabs.deployit.repository.SearchParameters as SearchParameters
 import com.xebialabs.deployit.plugin.api.reflect.Type as Type
+import com.xebialabs.xlrelease.builder.PhaseBuilder as PhaseBuilder
+import com.xebialabs.xlrelease.domain.status.PhaseStatus as PhaseStatus
+
 
 class CollectorError(Exception):
     """Exception raised for errors in the input.
@@ -31,12 +30,13 @@ class CollectorError(Exception):
         msg  -- explanation of the error
     """
 
-    def __init__(self,value, msg):
+    def __init__(self, value, msg):
         self.value = value
         self.msg = msg
 
     def __str__(self):
         return "%s : %s" % (self.msg, self.value)
+
 
 class Collector():
     """
@@ -48,7 +48,7 @@ class Collector():
     optional_attributes = []
 
     def __init__(self, **params):
-       self.validate(**params)
+        self.validate(**params)
 
     def validate(self, **params):
         for a in self.attributes:
@@ -60,7 +60,6 @@ class Collector():
 
 
 class JsonCollector(Collector):
-
     attributes = ["url", "path"]
     optional_attributes = []
 
@@ -70,11 +69,10 @@ class JsonCollector(Collector):
 
         self.requests_params = {}
 
-        if params.has_key('username') and  params.has_key('password'):
+        if params.has_key('username') and params.has_key('password'):
             self.requests_params['auth'] = HTTPBasicAuth(params['username'], params['password'])
 
         self.__collector_params = params
-
 
     def resolve(self):
         """
@@ -83,7 +81,6 @@ class JsonCollector(Collector):
         """
         return self.get_path(self.load_json(self.__collector_params['url']), self.__collector_params['path'])
 
-
     def load_json(self, url):
         """
         loads json from a url and translates it into a dictionary
@@ -91,7 +88,7 @@ class JsonCollector(Collector):
         :return:
         """
 
-        #adding in retry to make all this stuff a little more robust
+        # adding in retry to make all this stuff a little more robust
         # if all else fails .. we are going to retry 10 times ..
         retries = 10
         nr_tries = 0
@@ -112,8 +109,8 @@ class JsonCollector(Collector):
 
                 # if the number of retries exceeds 10 fail hard .. cuz that is how we roll
                 if nr_tries > retries:
-                  Base.fatal('Unable to retrieve json from url after %i retries' % retries )
-                  sys.exit(2)
+                    Base.fatal('Unable to retrieve json from url after %i retries' % retries)
+                    sys.exit(2)
 
                 # warn the user
                 Base.warning("unable to retrieve json from url: %s" % url)
@@ -130,16 +127,15 @@ class JsonCollector(Collector):
                 # if we do get a proper response code .. break out of the loop
                 break
 
-
         try:
             Base.info("%s responded with:" % url)
             print response.text
-            output =  json.loads(str(response.text))
+            output = json.loads(str(response.text))
 
         except Exception:
             Base.warning("unable to decode information provided by %s" % url)
             time.sleep(5)
-            output =  None
+            output = None
         except JSONDecodeError:
             Base.warning("unable to decode output, not json formatted")
             time.sleep(5)
@@ -169,12 +165,12 @@ class JsonCollector(Collector):
                     return self.get_path(json[field], path)
 
                 elif type(json[field]) == list:
-                    if len(json[field]) < 2 :
+                    if len(json[field]) < 2:
                         Base.info("found %s" % (json[field][0]))
                         return str(json[field][0])
 
                 elif len(path) == 0:
-                    Base.info( "found %s using path %s" % (field, path))
+                    Base.info("found %s using path %s" % (field, path))
                     return str(json[field])
             else:
                 Base.warning("the requested path of %s could not be found in the json document. returning None instead")
@@ -183,13 +179,7 @@ class JsonCollector(Collector):
             Base.error("Error encountered during resolution")
 
 
-
-
-
 class XLRProfile(collections.MutableMapping):
-
-
-
     """A dictionary that applies an arbitrary key-altering
        function before accessing the keys"""
 
@@ -203,17 +193,19 @@ class XLRProfile(collections.MutableMapping):
         :return:
         """
 
-         # pull in the xlrelease apis
-        self.__releaseApi        = XLReleaseServiceHolder.getReleaseApi()
+        # pull in the xlrelease apis
+        self.__releaseApi = XLReleaseServiceHolder.getReleaseApi()
         self.__repositoryService = XLReleaseServiceHolder.getRepositoryService()
-        self.__taskApi           = XLReleaseServiceHolder.getTaskApi()
+        self.__taskApi = XLReleaseServiceHolder.getTaskApi()
+        self.__phaseApi = XLReleaseServiceHolder.getPhaseApi()
 
         self.__variable_start_regex = re.compile('\$\{', re.IGNORECASE)
+        # TODO: replace with {} once testing is done
 
+        self.__variable_start_string = "$<"
+        self.__variable_end_string = ">"
 
         self.store = dict()
-
-
 
         if kwargs.has_key('url'):
             kwargs = self.load_from_url(kwargs['url'])
@@ -224,11 +216,9 @@ class XLRProfile(collections.MutableMapping):
 
         self.update(dict(*args, **kwargs))  # use the free update to set keys
 
+    def resolve_xlr_template_variables(self, release_id, var_dict=None):
 
-    def resolve_xlr_template_variables(self, release_id, var_dict = None):
-
-
-        #if no var_dict specified get the profiles variables as default action
+        # if no var_dict specified get the profiles variables as default action
         if var_dict == None:
             var_dict = self.variables()
 
@@ -241,19 +231,15 @@ class XLRProfile(collections.MutableMapping):
                     Base.info("found variable in %s" % v)
 
                     for x, y in self.get_release_variables(release_id).items():
-                        if x in v :
-                           print "REPLACE"
-                           Base.info("replacing variable %s with value %s" % (x, y))
-                           v = v.replace(x, y)
-                           var_dict[k] = v
+                        if x in v:
+                            print "REPLACE"
+                            Base.info("replacing variable %s with value %s" % (x, y))
+                            v = v.replace(x, y)
+                            var_dict[k] = v
 
         return var_dict
 
-
-
-
-
-    def get_release_variables(self,release_id):
+    def get_release_variables(self, release_id):
         release = self.__releaseApi.getRelease(str(release_id))
         return release.getVariableValues()
 
@@ -290,6 +276,12 @@ class XLRProfile(collections.MutableMapping):
     def toggles(self):
         return self.__getitem__('toggles')
 
+    def template_plan(self):
+        return self.__getitem__('template_plan')
+
+    def settings(self):
+        return self.__getitem__('settings')
+
     def load_from_url(self, url):
         """
         reaches out to a url and loads the profile
@@ -314,7 +306,6 @@ class XLRProfile(collections.MutableMapping):
             if str(p.getTitle()) == profileName:
                 return json.loads(p.getProperty('profileJson'))
 
-
     def resolve_variables(self):
 
         for key, val in self.variables():
@@ -324,7 +315,7 @@ class XLRProfile(collections.MutableMapping):
                     Base.fatal("value for %s could not be found using the specified collector" % key)
                     sys.exit(2)
                 else:
-                    Base.info( "retrieved value: %s for %s" % (solution, key))
+                    Base.info("retrieved value: %s for %s" % (solution, key))
                 self.set_variable(key, solution)
 
     def resolve_variable(self, **params):
@@ -366,12 +357,9 @@ class XLRProfile(collections.MutableMapping):
                 Base.error("collector type is not supported.... yet!!!")
                 pass
 
-
         if collector_val:
             ret_val = collector_val
         return ret_val
-
-
 
     def persist_variables_to_release(self, releaseId):
         """
@@ -385,11 +373,11 @@ class XLRProfile(collections.MutableMapping):
         Base.info("resolved profile:")
         print self.variables()
 
-        #handle variables inside the release first
+        # handle variables inside the release first
 
         newVariables = {}
 
-        #printing the variables for reporting
+        # printing the variables for reporting
         for k, v in self.variables().items():
             Base.info("key: %s \t value: %s \n" % (k, v))
 
@@ -424,8 +412,6 @@ class XLRProfile(collections.MutableMapping):
         else:
             Base.warning("no toggles found")
 
-
-
     def get_phase_dict(self, release):
         phases = {}
 
@@ -445,11 +431,9 @@ class XLRProfile(collections.MutableMapping):
         phasedict = self.get_phase_dict(release)
 
         if phasedict.has_key(phaseTitle):
-            return  self.get_tasks_by_phase_dict(phasedict[phaseTitle], release)
+            return self.get_tasks_by_phase_dict(phasedict[phaseTitle], release)
         else:
             return False
-
-
 
     def get_task_by_phase_and_title(self, phaseTitle, taskTitle, release):
         tasks = self.get_tasks_for_phase_by_title(phaseTitle, release)
@@ -458,3 +442,425 @@ class XLRProfile(collections.MutableMapping):
                 return tasks[taskTitle]
 
         return False
+
+    # template addition
+    #
+    #
+
+    def find_ci_id(self, name, type):
+        sp = SearchParameters()
+        sp.setType(Type.valueOf(str(type)))
+
+        for p in XLReleaseServiceHolder.getRepositoryService().listEntities(sp):
+            if str(p.getTitle()) == name:
+               return p
+
+
+
+    def create_phase(self, title, release):
+        """
+        creates a phase at the end of the release
+        :param title: title of the phase
+        :param release: the release id of THIS release
+        :return: true/false
+        """
+
+        # danger close
+        # generating a random number for the phaseid prefix
+        randIdPost = random.randint(100000, 9999999)
+
+        # get the template object from the repository service
+        template = self.__repositoryService.read("/" + release.id)
+
+        # get the phases object
+        phases = template.getPhases()
+
+        # get the id for the new phase
+
+        # build the new pahse
+        phase = PhaseBuilder.newPhase().withTitle(title) \
+            .withId(template.getId() + "/Phase" + str(randIdPost)) \
+            .withRelease(template) \
+            .withStatus(PhaseStatus.PLANNED) \
+            .build()
+
+        # get the size of the phases object
+        phaseIndex = len(phases)
+
+        # we are always appending phases to the end of the release.. so the index will do
+        phases.add(phaseIndex, phase)
+
+        # save the phase
+        phaseId = self.__repositoryService.create(phase)
+
+        # save the release
+        self.__repositoryService.update(template)
+
+        return phaseId
+
+    def createParallelTaskContainer(self, phaseId, release):
+
+        taskType = Type.valueOf('xlrelease.ParallelGroup')
+
+        task = taskType.descriptor.newInstance("nonamerequired")
+
+        return self.__taskApi.addTask(str(self.get_target_phase(phaseId, release)), task)
+
+    def createSimpleTaskInContainer(self, containerId, title, taskTypeValue,  propertyMap, parentTypeValue=None):
+
+        parentTask = self.__taskApi.getTask(str(containerId))
+        task = self.createSimpleTaskObject(taskTypeValue, title, propertyMap, parentTypeValue)
+        task.setContainer(parentTask)
+        self.__taskApi.addTask(str(containerId), task)
+
+    def createSimpleTaskInPhase(self, phaseId, taskTypeValue, title, propertyMap):
+
+        try:
+            self.__taskApi.addTask(str(phaseId), self.createSimpleTaskObject(taskTypeValue, title, propertyMap))
+        except:
+            print "unable to create Task: %s in Phase: %s" % (title, phaseId)
+
+    def createSimpleTaskObject(self, taskTypeValue, title, propertyMap={}, parentTypeValue = None ):
+        """
+        adds a custom task to a phase in the release
+        :param phaseId: id of the phase
+        :param taskTypeValue: type of task to add
+        :param title: title of the task
+        :param propertyMap: properties to add to the task
+        :return:
+        """
+
+        if parentTypeValue == None:
+            parentTypeValue = 'xlrelease.CustomScriptTask'
+
+        # print propertyMap
+        parenttaskType = Type.valueOf(str(parentTypeValue))
+
+        parentTask = parenttaskType.descriptor.newInstance("nonamerequired")
+        parentTask.setTitle(title)
+        childTaskType = Type.valueOf(taskTypeValue)
+        childTask = childTaskType.descriptor.newInstance("nonamerequired")
+        for item in propertyMap:
+
+            if childTask.hasProperty(item):
+                type = childTask.getType()
+                desc = type.getDescriptor()
+                pd = desc.getPropertyDescriptor(item)
+
+                if str(pd.getKind()) == "CI":
+                    childTask.setProperty(item, self.find_ci_id(str(item), pd.getReferencedType()))
+                else:
+                    childTask.setProperty(item, propertyMap[item])
+
+            else:
+                Base.info("dropped property: %s on %s because: not applicable" % (item, taskTypeValue))
+        parentTask.setPythonScript(childTask)
+
+        return parentTask
+
+    def createSimpleTask(self, phaseId, taskTypeValue, title, propertyMap, release, parentTypeValue = None):
+        """
+        adds a custom task to a phase in the release
+        :param phaseId: id of the phase
+        :param taskTypeValue: type of task to add
+        :param title: title of the task
+        :param propertyMap: properties to add to the task
+        :return:
+        """
+        # print propertyMap
+
+        if parentTypeValue == None:
+            parentTypeValue = 'xlrelease.CustomScriptTask'
+
+        phaseName = self.get_target_phase(phaseId, release)
+
+        parenttaskType = Type.valueOf(parentTypeValue)
+
+        parentTask = parenttaskType.descriptor.newInstance("nonamerequired")
+        parentTask.setTitle(title)
+        childTaskType = Type.valueOf(taskTypeValue)
+        childTask = childTaskType.descriptor.newInstance("nonamerequired")
+        for item in propertyMap:
+            if childTask.hasProperty(item):
+                 type = childTask.getType()
+                 desc = type.getDescriptor()
+                 pd   = desc.getPropertyDescriptor(item)
+
+                 if str(pd.getKind()) == "CI":
+                    childTask.setProperty(item, self.find_ci_id(str(item), pd.getReferencedType()))
+                 else:
+                    childTask.setProperty(item, propertyMap[item])
+            else:
+                Base.info("dropped property: %s on %s because: not applicable" % (item, taskTypeValue))
+        parentTask.setPythonScript(childTask)
+
+        self.__taskApi.addTask(str(phaseName), parentTask)
+
+    def phase_exists(self, targetPhase):
+        phaseList = self.__phaseApi.searchPhasesByTitle(targetPhase, release.id)
+        if len(phaseList) == 1:
+            return True
+
+        return False
+
+    def get_target_phase(self, targetPhase, release):
+        """
+        search the release for the targetPhase by string name
+        for some stupid reason we can't address it by its name ..
+
+        :param targetPhase:string
+        :return:phaseId
+        """
+        phaseList = self.__phaseApi.searchPhasesByTitle(str(targetPhase), release.id)
+
+        if len(phaseList) == 1:
+
+            return phaseList[0]
+        else:
+
+            print "Requested phase: %s not found. Creating it in the template first" % targetPhase
+            self.create_phase(targetPhase, release)
+            phaseList = self.__phaseApi.searchPhasesByTitle(str(targetPhase), release.id)
+            if len(phaseList) == 1:
+                return phaseList[0]
+            else:
+                Base.fatal(
+                    "unable to create phase %s.. there is something seriously wrong with your installation" % str(
+                        targetPhase))
+                # should be replaced by some logic to create the phase
+
+    def handle_phases(self, phasesDict, release):
+
+        repeater = ""
+        settings = self.settings()
+
+        # loop over entry's
+        for p in phasesDict:
+            # if meta:repeat_on is set run a handle_phase for every one of the phases
+            if p.has_key("meta") and p["meta"].has_key("repeat_on"):
+                repeat_on = p["meta"]["repeat_on"]
+                repeater = settings[repeat_on]
+
+                # loop over the repeater and create the phases for it
+                for r in repeater:
+                    # get the settings ready for this
+                    local_settings = settings
+                    local_settings[repeat_on] = r
+
+                    # handle the phase with the augmented settings
+                    self.handle_phase(p, local_settings, release)
+            else:
+                self.handle_phase(p, settings, release)
+
+
+                # if not just run handle_phase for this phase
+                # return "x"
+
+    def handle_phase(self, phaseSettings, local_settings, release):
+
+        # resolve the settings in the phaseDict by doing a variable search and replace on the phase dict.
+        localPhaseDict = self.resolve_settings(phaseSettings, local_settings)
+
+
+        # create the phase
+        if localPhaseDict.has_key('title'):
+            self.get_target_phase(localPhaseDict['title'], release)
+            Base.info("phase: %s created with id %s" % (localPhaseDict['title'],localPhaseDict['title']))
+        else:
+            Base.error("phase: not created title could not be retrieved")
+
+        if localPhaseDict.has_key('containers'):
+            self.handle_containers(localPhaseDict['title'], localPhaseDict['containers'], local_settings, release)
+        else:
+            self.handle_tasks(localPhaseDict['title'], localPhaseDict['tasks'], local_settings, release)
+
+
+    def handle_container(self, phaseId, containerDict, localSettings, release):
+        '''
+        handle a single container
+        :param phaseId: id of the phase to add the containers to
+        :param containerDict: dictionary containing all containers settings
+        :param localSettings: settings to use
+        :param release:
+        :return:
+        '''
+        containerId = self.createParallelTaskContainer(phaseId, release)
+
+        if containerDict.has_key('tasks'):
+            self.handle_tasks(phaseId,containerDict['tasks'], localSettings, release, containerId)
+
+    def handle_containers(self, phaseId, containersList, localSettings, release):
+        '''
+        handle a group of containers
+
+        :param phaseId: id of the phase to add the containers to
+        :param containersList: list of containers
+        :param localSettings: settings to use to resolve any variables
+        :param release: release to add the containers to
+        :return:
+        '''
+        # loop over the containers
+
+        for c in containersList:
+            self.handle_container(phaseId, c, localSettings, release)
+
+
+    def handle_tasks(self, phaseId, tasksDict, tasksSettings, release, containerId=None):
+        '''
+        handles a group of tasks
+        :param phaseId: id of the phase to add the tasks to
+        :param tasksDict: dictionary containing the task info
+        :param tasksSettings: settings to use to resolve the variables in the tasksDict
+        :param release: release to add the tasks to
+        :param containerId: id of the container to add the tasks to if any
+        :return: nothing
+        '''
+        repeater = ""
+
+        for t in tasksDict:
+
+            if t.has_key("meta") and t['meta'].has_key("repeat_on"):
+                repeat_on = t['meta']['repeat_on']
+                repeater = tasksSettings[repeat_on]
+
+                for r in repeater:
+
+                    task_local_settings = tasksSettings.copy()
+                    task_local_settings[repeat_on] = r
+
+                    self.handle_task(phaseId,t, task_local_settings, release, containerId)
+
+            else:
+                self.handle_task(phaseId, t, tasksSettings, release, containerId)
+
+    def handle_task(self, phaseId, taskDict, taskSettings, release, containerId=None):
+        '''
+        handles a single task
+        :param phaseId: id of the phase to add the task to
+        :param taskDict: dictionary describing the task
+        :param taskSettings:  settings to use when resolving variables in the inputdict
+        :param release: release to add the steps to
+        :param containerId: id of the container to add the task to if any
+        :return: none
+        '''
+        localTaskDict = self.resolve_settings(taskDict, taskSettings)
+
+
+
+        try:
+            parentTypeValue = localTaskDict['meta']['parent_task_type']
+            taskTitle = localTaskDict['title']
+        except KeyError:
+            parentTypeValue = None
+            taskTitle = "forgot to set one"
+
+
+        try:
+            if containerId != None:
+                self.createSimpleTaskInContainer(containerId, taskTitle, localTaskDict['meta']['task_type'], localTaskDict, parentTypeValue)
+            else:
+                self.createSimpleTask(phaseId, localTaskDict['meta']['task_type'], taskTitle, localTaskDict, release, parentTypeValue)
+
+        except Exception:
+            print "Unable to create task"
+
+
+    def handle_template_plan(self, releaseId):
+        '''
+        handle the template plan .. add the steps described in the template to the plan in xlr
+        :param releaseId: id of the release
+        :return: nothing
+        '''
+
+        release = self.__releaseApi.getRelease(releaseId)
+
+        if self.template_plan():
+            self.handle_phases(self.template_plan()["phases"], release)
+
+    ### utility functions
+
+
+    def resolve_settings(self, inputDict, inputSettings):
+        '''
+        scan the inputDict for variable markers and look for resolution in the settings section of the template
+        :param inputDict: Dictionary to scan
+        :param inputSettings: settings that pertain to this input dictionary
+        :return: dictionary with resolution information
+        '''
+
+        vars_list = []
+        resolve_dict = {}
+        output_dict = {}
+        # find all the variables in the target dictionary
+        for k, v in inputDict.items():
+            if isinstance(v, unicode) or isinstance(v, str):
+                x = self.find_all_variables(str(v))
+                if x:
+                    vars_list = vars_list + list(set(x) - set(vars_list))
+
+
+        # loop over the list with found variables
+        for v in vars_list:
+            # check if we can find a resolution in the settings for this app
+            if inputSettings.has_key(v):
+                # if we find a list in settings for this variable concatenate and dump
+                if type(inputSettings[v]) is list:
+                    resolve_dict[v] = ",".join(inputSettings[v])
+                else:
+                    resolve_dict[v] = inputSettings[v]
+
+        # loop over the resolve_dict and check it for stuff that could trigger a more specific set of variables
+        specific_dict = inputSettings['specific_settings']
+        for k, v in resolve_dict.items():
+            if specific_dict.has_key(k):
+                if specific_dict[k].has_key(v):
+                    resolve_dict.update(specific_dict[k][v])
+
+        # do one last loop over the dictionaries non list/dict objects and replace the placeholders/variables with te result
+        for k, v in inputDict.items():
+            if isinstance(v, unicode) or isinstance(v, str):
+                # loop over the keys of the resolve dict
+                for s in resolve_dict.keys():
+                    ps = self.__variable_start_string + str(s) + self.__variable_end_string
+
+                    v = v.replace(ps, resolve_dict[s])
+
+            output_dict[k] = v
+
+        for k, v in output_dict.items():
+            Base.info("Key: %s resolved to: %s" % (k, v))
+
+        return output_dict
+
+    def find_all_variables(self, string):
+        o = 0
+        output = []
+        while True:
+            s = self.find_variable_start(string, o)
+            if s != False:
+                e = self.find_variable_end(string, s)
+                if e == False:
+                    break
+                else:
+                    o = e
+                    Base.info("found variable %s in %s" % (string[s:e], string))
+                    output.append(string[s:e])
+                    continue
+            else:
+                break
+        if len(output) == 0:
+            Base.info("no variable found in %s" % string)
+            return False
+        return output
+
+    def find_variable_start(self, s, offset):
+        try:
+            return s.index(self.__variable_start_string, offset) + 2
+        except ValueError:
+            return False
+
+    def find_variable_end(self, s, start_pos):
+        try:
+            return s.index(self.__variable_end_string, start_pos)
+        except ValueError:
+            return False

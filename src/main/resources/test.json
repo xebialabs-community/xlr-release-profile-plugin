@@ -1,11 +1,24 @@
-{"variables":
-    {"test1": { "default_value" : "batman",
-                "collector" : { "type" : "json" ,
-                                "url" : "http://192.168.99.100:32768/artifactory/api/xlrelease?properties",
-                                "path" : "properties/last_good_build" }},
-     "test2": { "default_value" : "joker",
-                "collector" : { "type" : "json" ,
-                                "url" : "http://192.168.99.100:32768/artifactory/api/xlrelease1?properties",
-                                "path" : "properties/last_good_build" }},
-     "test3": "scarecrow" }
+{
+  "variables": {
+    "test1": {
+      "default_value": "batman",
+      "collector": {
+        "type": "json",
+        "url": "http://192.168.99.100:32768/artifactory/api/xlrelease?properties",
+        "path": "properties/last_good_build"
+      }
+    },
+    "test2": {
+      "default_value": "joker",
+      "collector": {
+        "type": "json",
+        "url": "http://192.168.99.100:32768/artifactory/api/xlrelease1?properties",
+        "path": "properties/last_good_build"
+      }
+    },
+    "test3": "scarecrow"
+  }
+
 }
+
+
