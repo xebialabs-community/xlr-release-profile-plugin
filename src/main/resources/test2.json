@@ -16,10 +16,12 @@
     "portfolio": "safeco",
     "release": "2016_01",
     "specific_settings": {
-      "environment" : {
-        "ete" : {"release" : "mary_poppins"}
+      "environment": {
+        "ete": {
+          "release": "${portfolio}"
+        }
       },
-      "appName" : {
+      "appName": {
         "app1": {
           "portfolio": "claims2"
         },
@@ -38,8 +40,7 @@
             "meta": {
               "repeat_on": "appName",
               "task_type": "xlr.CreateAndStartSubRelease",
-              "parent_task_type" : "xlrelease.CustomScriptTask"
-
+              "parent_task_type": "xlrelease.CustomScriptTask"
             },
             "title": "$<appName> Build",
             "xlrServer": "local",
@@ -64,7 +65,29 @@
                 "meta": {
                   "repeat_on": "appName",
                   "task_type": "xlr.CreateAndStartSubRelease",
-                  "parent_task_type" : "xlrelease.CustomScriptTask"
+                  "parent_task_type": "xlrelease.CustomScriptTask"
+                },
+                "title": "$<appName> deploy",
+                "xlrServer": "local",
+                "username": "admin",
+                "templateName": "WASLP_DEPLOY",
+                "releaseTitle": "Deploy $<appName> to $<environment>",
+                "releaseDescription": "Deploy $<appName> to $<environment>",
+                "variables": "appName=$<appName>,portfolio=$<portfolio>,release=$<release>"
+              }
+            ]
+          },
+          {
+            "meta": {
+              "type": "xlrelease.SequentialGroup",
+              "max_tasks": "3"
+            },
+            "tasks": [
+              {
+                "meta": {
+                  "repeat_on": "appName",
+                  "task_type": "xlr.CreateAndStartSubRelease",
+                  "parent_task_type": "xlrelease.CustomScriptTask"
                 },
                 "title": "$<appName> deploy",
                 "xlrServer": "local",

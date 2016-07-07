@@ -31,27 +31,36 @@ def validUrl(url):
     while x < int(11):
         x += 1
         try:
-            r = doHeadRequest(url)
+
+            r = requests.get(url, verify=False)
             r.raise_for_status()
             Base.info('%s might be a valid url' % url)
             return True
-        except Exception:
+        except Exception as e:
             Base.warning('encountered a minor error going to retry')
+            Base.warning('%s' % e)
     return False
 
 
 profileList = []
 atLeastOne = False
 
+
+
+
 if profile_url:
-    for url in profileUrl.split(';'):
+    for url in profile_url.split(';'):
         Base.info("trying to add profile from url: %s" % url)
         if validUrl(url):
-          p = XLRProfile.XLRProfile(url=url)
+          profileList.append(url)
           atLeastOne = True
+    p = XLRProfile.XLRProfile(url=profileList)
+    p.handle_template(__release.id)
+
+
 elif profile:
     p = XLRProfile.XLRProfile(repoString=profile.replace('\n','').replace('\t', '').replace('\r', ''))
-    p.handle_template_plan(__release.id)
+    p.handle_template(__release.id)
     atLeastOne = True
 
 else:

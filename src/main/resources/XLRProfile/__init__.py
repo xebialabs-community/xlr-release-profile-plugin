@@ -9,6 +9,7 @@ import re
 import collections
 import time
 import random
+import pprint
 
 import requests
 from Base import Base
@@ -243,6 +244,7 @@ class XLRProfile(collections.MutableMapping):
         release = self.__releaseApi.getRelease(str(release_id))
         return release.getVariableValues()
 
+
     def __getitem__(self, key):
         if self.store.has_key(self.__keytransform__(key)):
             return self.store[self.__keytransform__(key)]
@@ -279,8 +281,14 @@ class XLRProfile(collections.MutableMapping):
     def template_plan(self):
         return self.__getitem__('template_plan')
 
+    def set_template_plan_from_dict(self, template_plan_dict):
+        self.store['template_plan'] = template_plan_dict
+
     def settings(self):
         return self.__getitem__('settings')
+
+    def set_settings_from_dict(self, settings_dict):
+        self.store['settings'] = settings_dict
 
     def load_from_url(self, url):
         """
@@ -288,10 +296,46 @@ class XLRProfile(collections.MutableMapping):
         :param url:
         :return: dict: profile
         """
-        response = requests.get(url, verify=False)
-        response.raise_for_status()
+        print type(url)
+        if type(url) == list:
 
-        return json.loads(str(response.text))
+
+            # if we are fed a list of urls
+            # resolve each one and merge them with the later url taking precedence
+            outputDict = {}
+            for u in url :
+                Base.info("Attempting to fetch profile at: %s" % u)
+                response = requests.get(u, verify=False)
+                response.raise_for_status()
+                print json.loads(str(response.text))
+                outputDict = dict(self.merge_profiles(outputDict, json.loads(str(response.text))))
+            pprint.pprint(outputDict)
+            return outputDict
+
+        else:
+            response = requests.get(url, verify=False)
+            response.raise_for_status()
+
+            return json.loads(str(response.text))
+
+    def merge_profiles(self, dict1, dict2):
+        for k in set(dict1.keys()).union(dict2.keys()):
+            if k in dict1 and k in dict2:
+                if isinstance(dict1[k], dict) and isinstance(dict2[k], dict):
+                    yield (k, dict(self.merge_profiles(dict1[k], dict2[k])))
+                elif isinstance(dict1[k], list) and isinstance(dict2[k], list):
+                    yield(k, dict1[k] + [i for i in dict2[k] if i not in dict1[k]])
+
+                else:
+                    # If one of the values is not a dict, you can't continue merging it.
+                    # Value from second dict overrides one in first and we move on.
+                    yield (k, dict2[k])
+                    # Alternatively, replace this with exception raiser to alert you of value conflicts
+            elif k in dict1:
+                yield (k, dict1[k])
+            else:
+                yield (k, dict2[k])
+
 
     def load_profile_from_xlr_repo(self, profileName):
         """
@@ -360,6 +404,10 @@ class XLRProfile(collections.MutableMapping):
         if collector_val:
             ret_val = collector_val
         return ret_val
+
+    def handle_variables(selfs, releaseId):
+        self.persist_variables_to_release(releaseId)
+
 
     def persist_variables_to_release(self, releaseId):
         """
@@ -503,6 +551,15 @@ class XLRProfile(collections.MutableMapping):
         taskType = Type.valueOf('xlrelease.ParallelGroup')
 
         task = taskType.descriptor.newInstance("nonamerequired")
+
+        return self.__taskApi.addTask(str(self.get_target_phase(phaseId, release)), task)
+
+    def createTaskContainer(self, phaseId, release,containerType="xlrelease.ParallelGroup", title = "Basic Container"):
+
+        taskType = Type.valueOf(str(containerType))
+
+        task = taskType.descriptor.newInstance("nonamerequired")
+        task.setTitle(str(title))
 
         return self.__taskApi.addTask(str(self.get_target_phase(phaseId, release)), task)
 
@@ -653,8 +710,7 @@ class XLRProfile(collections.MutableMapping):
                 self.handle_phase(p, settings, release)
 
 
-                # if not just run handle_phase for this phase
-                # return "x"
+
 
     def handle_phase(self, phaseSettings, local_settings, release):
 
@@ -684,10 +740,33 @@ class XLRProfile(collections.MutableMapping):
         :param release:
         :return:
         '''
-        containerId = self.createParallelTaskContainer(phaseId, release)
+        meta_dict = {"type" : "xlrelease.ParallelGroup", "title" : "default", "max_tasks" : 5}
+
+        if containerDict.has_key('meta'):
+            for k in meta_dict.keys():
+                if containerDict['meta'].has_key(k):
+                    print "metakey: %s value: %s" % (k, containerDict['meta'][k])
+                    meta_dict[k] = containerDict['meta'][k]
+
+
 
         if containerDict.has_key('tasks'):
-            self.handle_tasks(phaseId,containerDict['tasks'], localSettings, release, containerId)
+
+            for t in containerDict['tasks']:
+                tasks_list = self.calculate_tasks_list(phaseId,containerDict['tasks'], localSettings, release)
+            # split the list in acceptable chunks
+            pprint.pprint(meta_dict)
+            tasklists =  [tasks_list[x:x+int(meta_dict["max_tasks"])] for x in xrange(0, len(tasks_list), int(meta_dict["max_tasks"]))]
+
+
+            # loop over the list of lists and do the thing
+            #creating a container for each list
+            x = 0
+            for tl in tasklists:
+                containerId = self.createTaskContainer(phaseId, release,containerType=meta_dict['type'], title=meta_dict['title'])
+
+                for t in tl:
+                    self.handle_task(t['phaseId'], t['taskDict'], t['task_local_settings'], t['release'], containerId)
 
     def handle_containers(self, phaseId, containersList, localSettings, release):
         '''
@@ -704,6 +783,25 @@ class XLRProfile(collections.MutableMapping):
         for c in containersList:
             self.handle_container(phaseId, c, localSettings, release)
 
+
+    def calculate_tasks_list(self, phaseId, tasksDict, tasksSettings, release):
+        task_list = []
+        repeater = ""
+
+        for t in tasksDict:
+
+            if t.has_key("meta") and t['meta'].has_key("repeat_on"):
+                repeat_on = t['meta']['repeat_on']
+                repeater = tasksSettings[repeat_on]
+
+                for r in repeater:
+
+                    task_local_settings = tasksSettings.copy()
+                    task_local_settings[repeat_on] = r
+
+                    task_list.append({"phaseId" : phaseId,"taskDict" : t, "task_local_settings" : task_local_settings,"release": release})
+
+        return task_list
 
     def handle_tasks(self, phaseId, tasksDict, tasksSettings, release, containerId=None):
         '''
@@ -774,10 +872,18 @@ class XLRProfile(collections.MutableMapping):
 
         release = self.__releaseApi.getRelease(releaseId)
 
+
+
+        self.set_template_plan_from_dict(self.resolve_xlr_template_variables_in_settings(self.template_plan(), releaseId))
+
         if self.template_plan():
             self.handle_phases(self.template_plan()["phases"], release)
 
     ### utility functions
+
+
+
+
 
 
     def resolve_settings(self, inputDict, inputSettings):
@@ -864,3 +970,58 @@ class XLRProfile(collections.MutableMapping):
             return s.index(self.__variable_end_string, start_pos)
         except ValueError:
             return False
+
+
+    def resolve_xlr_template_variables_in_settings(self, input_object, release_id):
+        '''
+        resolve xlr variables in dictionaries
+        :param release_id:
+        :param input_dictionary:
+        :return:
+        '''
+
+
+        output_list = []
+        output_dict = {}
+
+        # step through the dictionary
+        if type(input_object) == str or type(input_object) == unicode:
+            if '${' in input_object:
+                 Base.info("found variable in %s" % input_object)
+                 input_object = self.replace_xlr_variable_in_string(input_object, release_id)
+            return input_object
+
+
+        if isinstance(input_object, dict):
+            for k,v in input_object.items():
+                output_dict[k] = self.resolve_xlr_template_variables_in_settings(v, release_id)
+            return output_dict
+        if isinstance(input_object, list):
+            for v in input_object:
+                output_list.append(self.resolve_xlr_template_variables_in_settings(v, release_id))
+            return output_list
+
+
+    def replace_xlr_variable_in_string(self, input_string, release_id):
+
+        xlr_variables = self.get_release_variables(release_id)
+        pprint.pprint(xlr_variables)
+        for x, y in xlr_variables.items():
+            if x in input_string:
+                Base.info("replacing variable %s with value %s" % (x, y))
+                input_string = input_string.replace(x, y)
+
+        return input_string
+
+
+    def handle_template(self, releaseId):
+
+        if self.template_plan() == None:
+            Base.fatal("no template plan found.. we can't continue")
+        if self.variables() != None:
+            self.handle_variables(releaseId)
+        if self.settings() != None:
+            self.set_settings_from_dict(self.resolve_xlr_template_variables_in_settings(self.settings(), releaseId))
+        if self.template_plan():
+            self.handle_template_plan(releaseId)
+

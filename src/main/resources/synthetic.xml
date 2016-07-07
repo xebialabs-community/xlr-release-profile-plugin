@@ -102,33 +102,6 @@
     <type type="rel.setReleaseTag" extends="rel.ProfileTask">
         <property name="tag" required="true" label="tag to ad to the release" kind="string" category="input"/>
     </type>
-
-    <type type="rel.addSteps" extends="rel.ProfileTask" virtual="true">
-        <property name="scriptLocation" default="rel/addSteps.py" category="input" hidden="true"/>
-        <property name="taskType" kind="string" required="true" hidden="true" category="input"
-                  default="xlr.CreateAndStartSubRelease"/>
-        <property name="parallelGroupSize" kind="integer" required="true" default="5" category="input"/>
-        <property name="generalSettings" label="setting to use when adding the steps: key:val,key:val" kind="string"
-                  required="false" category="input"/>
-    </type>
-
-    <type type="rel.addBuildSteps" extends="rel.addSteps">
-        <property name="applications" required="true"
-                  label="applications to create build steps for, formatted application=param:val,param:val;"
-                  kind="string" category="input"/>
-        <property name="subTemplate" required="true" label="subTemplate" default="WASLP_BUILD" kind="string"
-                  category="input" hidden="true"/>
-        <property name="taskAction" kind="string" required="true" hidden="true" category="input" default="Build"/>
-    </type>
-
-    <type type="rel.addDeploySteps" extends="rel.addBuildSteps">
-        <property name="environments" required="true" label="environments to add deploy templates for. env,env,env"
-                  kind="string" category="input"/>
-        <property name="scriptLocation" default="rel/addSteps.py" category="input" hidden="true"/>
-        <property name="taskAction" kind="string" required="true" hidden="true" category="input" default="Deploy"/>
-        <property name="subTemplate" required="true" label="subTemplate" default="WASLP_DEPLOY" kind="string"
-                  category="input" hidden="true"/>
-    </type>
     <type type="rel.loadTemplateProfile" extends="rel.ProfileTask">
         <property name="scriptLocation" default="rel/loadTemplateProfile.py" category="input" hidden="true"/>
         <property name="profile_url" kind="string" required="false" hidden="false" category="input"/>
