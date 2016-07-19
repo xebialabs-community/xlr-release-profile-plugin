@@ -103,7 +103,7 @@
         <property name="tag" required="true" label="tag to ad to the release" kind="string" category="input"/>
     </type>
     <type type="rel.loadTemplateProfile" extends="rel.ProfileTask">
-        <property name="scriptLocation" default="rel/loadTemplateProfile.py" category="input" hidden="true"/>
+        <property name="scriptLocation" default="rel/LoadTemplateProfile.py" category="input" hidden="true"/>
         <property name="profile_url" kind="string" required="false" hidden="false" category="input"/>
         <property name="profile" label="inline profile to load" required="false" category="input" size="large"/>
     </type>

@@ -718,6 +718,7 @@ class XLRProfile(collections.MutableMapping):
         localPhaseDict = self.resolve_settings(phaseSettings, local_settings)
 
 
+
         # create the phase
         if localPhaseDict.has_key('title'):
             self.get_target_phase(localPhaseDict['title'], release)
