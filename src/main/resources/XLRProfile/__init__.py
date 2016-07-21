@@ -255,7 +255,8 @@ class XLRProfile(collections.MutableMapping):
         self.store[self.__keytransform__(key)] = value
 
     def __delitem__(self, key):
-        del self.store[self.__keytransform__(key)]
+        if self.store.has_key(self.__keytransform__(key)):
+            del self.store[self.__keytransform__(key)]
 
     def __iter__(self):
         return iter(self.store)
@@ -637,21 +638,33 @@ class XLRProfile(collections.MutableMapping):
         parentTask.setTitle(title)
         childTaskType = Type.valueOf(taskTypeValue)
         childTask = childTaskType.descriptor.newInstance("nonamerequired")
+        vm = {}
         for item in propertyMap:
+            Base.info("settings %s on task of type: %s" % (item, childTaskType))
             if childTask.hasProperty(item):
                  type = childTask.getType()
                  desc = type.getDescriptor()
                  pd   = desc.getPropertyDescriptor(item)
 
+
                  if str(pd.getKind()) == "CI":
                     childTask.setProperty(item, self.find_ci_id(str(item), pd.getReferencedType()))
                  else:
                     childTask.setProperty(item, propertyMap[item])
+                 if str(pd.getCategory()) == "output":
+                    Base.info("added %s to variable mapping" % propertyMap[item])
+                    vm['%s.%s' % ("pythonScript", item)] = "${" + propertyMap[item] + "}"
+
+
             else:
                 Base.info("dropped property: %s on %s because: not applicable" % (item, taskTypeValue))
         parentTask.setPythonScript(childTask)
+        if parentTask.hasProperty('variableMapping'):
+            parentTask.setVariableMapping(vm)
 
         self.__taskApi.addTask(str(phaseName), parentTask)
+
+
 
     def phase_exists(self, targetPhase):
         phaseList = self.__phaseApi.searchPhasesByTitle(targetPhase, release.id)
@@ -728,9 +741,10 @@ class XLRProfile(collections.MutableMapping):
 
         if localPhaseDict.has_key('containers'):
             self.handle_containers(localPhaseDict['title'], localPhaseDict['containers'], local_settings, release)
-        else:
+        elif localPhaseDict.has_key('tasks'):
             self.handle_tasks(localPhaseDict['title'], localPhaseDict['tasks'], local_settings, release)
-
+        else:
+            Base.info("no task found for this phase")
 
     def handle_container(self, phaseId, containerDict, localSettings, release):
         '''
@@ -898,46 +912,51 @@ class XLRProfile(collections.MutableMapping):
         vars_list = []
         resolve_dict = {}
         output_dict = {}
-        # find all the variables in the target dictionary
-        for k, v in inputDict.items():
-            if isinstance(v, unicode) or isinstance(v, str):
-                x = self.find_all_variables(str(v))
-                if x:
-                    vars_list = vars_list + list(set(x) - set(vars_list))
+
+        if inputSettings != None:
+            # find all the variables in the target dictionary
+            for k, v in inputDict.items():
+                if isinstance(v, unicode) or isinstance(v, str):
+                    x = self.find_all_variables(str(v))
+                    if x:
+                        vars_list = vars_list + list(set(x) - set(vars_list))
 
 
-        # loop over the list with found variables
-        for v in vars_list:
-            # check if we can find a resolution in the settings for this app
-            if inputSettings.has_key(v):
-                # if we find a list in settings for this variable concatenate and dump
-                if type(inputSettings[v]) is list:
-                    resolve_dict[v] = ",".join(inputSettings[v])
-                else:
-                    resolve_dict[v] = inputSettings[v]
+            # loop over the list with found variables
+            for v in vars_list:
+                # check if we can find a resolution in the settings for this app
+                if inputSettings.has_key(v):
+                    # if we find a list in settings for this variable concatenate and dump
+                    if type(inputSettings[v]) is list:
+                        resolve_dict[v] = ",".join(inputSettings[v])
+                    else:
+                        resolve_dict[v] = inputSettings[v]
 
-        # loop over the resolve_dict and check it for stuff that could trigger a more specific set of variables
-        specific_dict = inputSettings['specific_settings']
-        for k, v in resolve_dict.items():
-            if specific_dict.has_key(k):
-                if specific_dict[k].has_key(v):
-                    resolve_dict.update(specific_dict[k][v])
+            # loop over the resolve_dict and check it for stuff that could trigger a more specific set of variables
+            if inputSettings.has_key('specific_settings'):
+                specific_dict = inputSettings['specific_settings']
+                for k, v in resolve_dict.items():
+                    if specific_dict.has_key(k):
+                        if specific_dict[k].has_key(v):
+                            resolve_dict.update(specific_dict[k][v])
 
-        # do one last loop over the dictionaries non list/dict objects and replace the placeholders/variables with te result
-        for k, v in inputDict.items():
-            if isinstance(v, unicode) or isinstance(v, str):
-                # loop over the keys of the resolve dict
-                for s in resolve_dict.keys():
-                    ps = self.__variable_start_string + str(s) + self.__variable_end_string
+            # do one last loop over the dictionaries non list/dict objects and replace the placeholders/variables with te result
+            for k, v in inputDict.items():
+                if isinstance(v, unicode) or isinstance(v, str):
+                    # loop over the keys of the resolve dict
+                    for s in resolve_dict.keys():
+                        ps = self.__variable_start_string + str(s) + self.__variable_end_string
 
-                    v = v.replace(ps, resolve_dict[s])
+                        v = v.replace(ps, resolve_dict[s])
 
-            output_dict[k] = v
+                output_dict[k] = v
 
-        for k, v in output_dict.items():
-            Base.info("Key: %s resolved to: %s" % (k, v))
+            for k, v in output_dict.items():
+                Base.info("Key: %s resolved to: %s" % (k, v))
 
-        return output_dict
+            return output_dict
+        else:
+            return inputDict
 
     def find_all_variables(self, string):
         o = 0
