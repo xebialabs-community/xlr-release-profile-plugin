@@ -320,6 +320,12 @@ class XLRProfile(collections.MutableMapping):
             return json.loads(str(response.text))
 
     def merge_profiles(self, dict1, dict2):
+        """
+        Merge two profiles in the order they where loaded in. The latter overwrites the former
+        :param dict1:
+        :param dict2:
+        :return:
+        """
         for k in set(dict1.keys()).union(dict2.keys()):
             if k in dict1 and k in dict2:
                 if isinstance(dict1[k], dict) and isinstance(dict2[k], dict):

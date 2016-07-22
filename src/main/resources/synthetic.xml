@@ -8,6 +8,7 @@
 -->
 <synthetic xsi:schemaLocation="http://www.xebialabs.com/deployit/synthetic synthetic.xsd"
            xmlns="http://www.xebialabs.com/deployit/synthetic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
     <type type="rel.ProfileTask" extends="xlrelease.PythonScript" virtual="true">
         <property name="taskColor" hidden="true" default="#0B0E0F"/>
         <property name="iconLocation" default="rel/profile.png" hidden="true"/>
@@ -37,6 +38,12 @@
         <property name="profileFromRepository" label="Profile stored in xlr repository" category="input"
                   required="false"/>
     </type>
+
+    <type type="rel.OverwriteVariable" extends="rel.ProfileTask">
+        <property name="variableName" label="Variable overwrite" category="input"/>
+        <property name="overwriteValue" label="value to assign" category="input" default="None"/>
+    </type>
+
     <!-- for backwards compatibility -->
     <type type="rel.LoadProfileFromUrl" extends="rel.LoadDynamicProfile" description="backward compatibility"/>
 
