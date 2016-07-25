@@ -23,7 +23,6 @@ Copy the plugin JAR file into the `SERVER_HOME/plugins` directory of XL Release.
 * OverwriteVariable
 * LoadProfileFromUrl **deprecated**
 * LoadTemplateProfile
-
 * SetReleaseCounter
 * SetReleaseCounterString
 * IncrementReleaseCounter
@@ -43,53 +42,73 @@ Copy the plugin JAR file into the `SERVER_HOME/plugins` directory of XL Release.
 * Description: make a variable optional, this makes a variable that would otherwise be required for a release to start not be required so that we are able to fill it at a later time.
 * Input Properties:
   * variableName: name of the variable to make optional
-
 * Output properties: **N/A**
 
 ####  SetDefaultValue
+* Description: Set a variable to a default value in the template plan.
+* Input Properties:
+  * variableName: name of the variable to make optional
+  * defaultValue: default value to apply to the variable
+* Output properties: **N/A**
+
 ####  LoadDynamicProfile
+* Description: load a variable profile from any location. This function is deprecated and will soon be replaced by loadTemplateProfile.
+* Input Properties:
+  * profileUrl: http/https url pointing at the profile (json format)
+  * profiles: __deprecated__ inline profile (for testing purposes only)
+  * profileFromRepository: reads a __ReleaseProfile__ from the internal configuration
+* Output properties: **N/A**
+
 ####  OverwriteVariable
+* Description: Overwrite a variable in the release (hard low-level overwrite)
+* Input Properties:
+  * variableName: name of the variable overwrite
+  * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
+* Output properties: **N/A**
+
 ####  loadTemplateProfile
 
 ####  SetReleaseCounter
+* Description: Overwrite a variable in the release (hard low-level overwrite)
+* Input Properties:
+  * variableName: name of the variable overwrite
+  * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
+* Output properties: **N/A**
 ####  SetReleaseCounterString
+* Description: Overwrite a variable in the release (hard low-level overwrite)
+* Input Properties:
+  * variableName: name of the variable overwrite
+  * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
+* Output properties: **N/A**
 ####  incrementReleaseCounter
+* Description: Overwrite a variable in the release (hard low-level overwrite)
+* Input Properties:
+  * variableName: name of the variable overwrite
+  * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
+* Output properties: **N/A**
 ####  getReleaseCounter
+* Description: Overwrite a variable in the release (hard low-level overwrite)
+* Input Properties:
+  * variableName: name of the variable overwrite
+  * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
+* Output properties: **N/A**
 ####  createCounterStore
+* Description: Overwrite a variable in the release (hard low-level overwrite)
+* Input Properties:
+  * variableName: name of the variable overwrite
+  * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
+* Output properties: **N/A**
 ####  destroyCounterStore
+* Description: Overwrite a variable in the release (hard low-level overwrite)
+* Input Properties:
+  * variableName: name of the variable overwrite
+  * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
+* Output properties: **N/A**
 
 
 
 
-    <type type="rel.MakeVariableOptional" extends="rel.ProfileTask">
-        <property name="variableName" label="Variable to Make Optional" category="output"/>
-    </type>
 
-    <type type="rel.SetDefaultValue" extends="rel.ProfileTask">
-        <property name="variableName" label="Variable to Make Optional" category="output"/>
-        <property name="defaultValue" label="default value to assign" category="input"/>
-    </type>
-
-    <type type="rel.ReleaseProfile" extends="xlrelease.Configuration">
-        <property name="profileJson" default="{}" size="large"/>
-    </type>
-
-    <type type="rel.LoadDynamicProfile" extends="rel.ProfileTask" description="Load release profile">
-        <property name="profileUrl" label="profile url" required="false" category="input"/>
-        <property name="profiles" label="inline profile to load" required="false" category="input" size="large"/>
-        <property name="profileFromRepository" label="Profile stored in xlr repository" category="input"
-                  required="false"/>
-    </type>
-
-    <type type="rel.OverwriteVariable" extends="rel.ProfileTask">
-        <property name="variableName" label="Variable overwrite" category="input"/>
-        <property name="overwriteValue" label="value to assign" category="input" default="None"/>
-    </type>
-
-    <!-- for backwards compatibility -->
-    <type type="rel.LoadProfileFromUrl" extends="rel.LoadDynamicProfile" description="backward compatibility"/>
-
-    <!-- release counter stuff -->
 
 
     <type type="rel.releaseCounterTask" extends="rel.ProfileTask" virtual="true">
