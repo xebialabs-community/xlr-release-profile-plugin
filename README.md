@@ -42,8 +42,10 @@ Copy the plugin JAR file into the `SERVER_HOME/plugins` directory of XL Release.
 ####  MakeVariableOptional
 ##### Description:
 make a variable optional, this makes a variable that would otherwise be required for a release to start not be required so that we are able to fill it at a later time.
+
 ##### Input Properties:
 * variableName: name of the variable to make optional
+
 ##### Output properties: **N/A**
 
 ####  SetDefaultValue
