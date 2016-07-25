@@ -11,7 +11,7 @@ __variable_start_regex = re.compile('^\$\{', re.IGNORECASE)
 __release = getCurrentRelease()
 
 if overwriteValue != "None":
-        
+
     # grab the variable dictionary
     variables = __release.getVariableValues()
 
