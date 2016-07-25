@@ -22,14 +22,14 @@ Copy the plugin JAR file into the `SERVER_HOME/plugins` directory of XL Release.
 * LoadDynamicProfile
 * OverwriteVariable
 * LoadProfileFromUrl **deprecated**
-* loadTemplateProfile
+* LoadTemplateProfile
 
 * SetReleaseCounter
 * SetReleaseCounterString
-* incrementReleaseCounter
-* getReleaseCounter
-* createCounterStore
-* destroyCounterStore
+* IncrementReleaseCounter
+* GetReleaseCounter
+* CreateCounterStore
+* DestroyCounterStore
 
 
 ### configuration items
@@ -40,8 +40,8 @@ Copy the plugin JAR file into the `SERVER_HOME/plugins` directory of XL Release.
 ### Task documentation
 
 ####  MakeVariableOptional
-**Input Properties**
-**Output properties**
+**Input Properties:**
+**Output properties:**
 **NA**
 
 ####  SetDefaultValue
