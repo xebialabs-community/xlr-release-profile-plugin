@@ -67,6 +67,11 @@ Copy the plugin JAR file into the `SERVER_HOME/plugins` directory of XL Release.
 * Output properties: **N/A**
 
 ####  loadTemplateProfile
+* Description: Overwrite a variable in the release (hard low-level overwrite)
+* Input Properties:
+  * variableName: name of the variable overwrite
+  * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
+* Output properties: **N/A**
 
 ####  SetReleaseCounter
 * Description: Overwrite a variable in the release (hard low-level overwrite)
@@ -74,30 +79,35 @@ Copy the plugin JAR file into the `SERVER_HOME/plugins` directory of XL Release.
   * variableName: name of the variable overwrite
   * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
 * Output properties: **N/A**
+
 ####  SetReleaseCounterString
 * Description: Overwrite a variable in the release (hard low-level overwrite)
 * Input Properties:
   * variableName: name of the variable overwrite
   * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
 * Output properties: **N/A**
+
 ####  incrementReleaseCounter
 * Description: Overwrite a variable in the release (hard low-level overwrite)
 * Input Properties:
   * variableName: name of the variable overwrite
   * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
 * Output properties: **N/A**
+
 ####  getReleaseCounter
 * Description: Overwrite a variable in the release (hard low-level overwrite)
 * Input Properties:
   * variableName: name of the variable overwrite
   * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
 * Output properties: **N/A**
+
 ####  createCounterStore
 * Description: Overwrite a variable in the release (hard low-level overwrite)
 * Input Properties:
   * variableName: name of the variable overwrite
   * overwriteValue: value to change the variable to. If this field is a string None this task wil not do anything
 * Output properties: **N/A**
+
 ####  destroyCounterStore
 * Description: Overwrite a variable in the release (hard low-level overwrite)
 * Input Properties:
