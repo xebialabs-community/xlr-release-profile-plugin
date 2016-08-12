@@ -31,7 +31,6 @@ def validUrl(url):
     while x < int(11):
         x += 1
         try:
-
             r = requests.get(url, verify=False)
             r.raise_for_status()
             Base.info('%s might be a valid url' % url)

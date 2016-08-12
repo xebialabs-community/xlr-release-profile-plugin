@@ -116,4 +116,16 @@
     </type>
 
 
+    <!-- triggers -->
+
+     <type type="rel.jsonTrigger" extends="xlrelease.ReleaseTrigger" description="Triggers release when the outcome of a rest query on a url changes">
+        <!-- common -->
+        <property name="url" required="true" description="url to query"/>
+        <property name="jsonPath" required="true" description="Path to look up within the returning JSON if any"/>
+
+        <!-- output variables -->
+        <property name="returnValue" category="variables" required="false" description="value found by the json lookup"/>
+    </type>
+
+
 </synthetic>
