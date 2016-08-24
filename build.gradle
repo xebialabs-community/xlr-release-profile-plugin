@@ -9,6 +9,10 @@ buildscript {
     }
 }
 
+plugins {
+    id "com.xebialabs.xlr.docker" version "1.1.12"
+}
+
 def getVersionName = { ->
     def stdout = new ByteArrayOutputStream()
     exec {
@@ -34,4 +38,9 @@ github {
     assets = [
             "build/libs/xlr-release-profile-plugin-"+getVersionName()+".jar"
     ]
+}
+
+
+xlrDocker {
+    version = '5.0.1.10'
 }
